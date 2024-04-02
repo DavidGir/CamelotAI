@@ -1,0 +1,19 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Uses connection pooling:
+  url      = env("POSTGRES_PRISMA_URL")
+  // Uses direct connection:
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model Document {
+    id        String   @id @default(cuid())
+    userId    String
+    fileUrl   String
+    fileName  String
+    createdAt DateTime @default(now()) @map(name: "created_at")
+}
