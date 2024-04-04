@@ -1,18 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Lancelot&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-input[type='number'] {
-  -moz-appearance: textfield;
-  appearance: textfield;
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none;
 }
 
-input[type='number']::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+html, body {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
-input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+* {
+  font-family: 'Lancelot', sans-serif;
+}
+
+.shadows {
+  text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.bg_linear {
+  background: linear-gradient(
+    95deg,
+    #101023 5.97%,
+    rgba(15, 15, 33, 0.97) 52.2%,
+    #0e0e20 91.78%
+  );
+}
+.bg_linear_gpt {
+  background: linear-gradient(
+    85deg,
+    rgba(252, 252, 252, 0.44) 1.85%,
+    rgba(242, 243, 248, 0.53) 89.3%
+  );
+}
+.drop_shadow {
+  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.2));
+}
+
+.text_bg {
+  background: linear-gradient(
+    90deg,
+    #101023 10.71%,
+    rgba(15, 15, 30, 0.64) 50.71%,
+    rgba(13, 13, 25, 0.84) 88.54%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.custom_bg {
+  background: linear-gradient(
+      0deg,
+      #fcfcfc 0.27%,
+      rgba(242, 243, 248, 0.3) 99.75%
+    ),
+
+}
+
+.ancient-scroll-bg {
+  background-image: url('/hero-background.svg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  background-position: calc(50% - 20px) center;
+  min-height: 200vh;
+}
+
+.ancient-scroll-bg-2 {
+  background-image: url('/bg-dashboard-2.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  /* background-attachment: scroll; */
+  background-position: center;
+  /* min-height: 100vh; */
+}
+
+/* Overriding pdf dropzone area styling */
+.upload-dropzone-text {
+  color: white;
+  border-color: black;
+}
+
+.upload-widget .text-secondary {
+  color: black !important;
+}
+
+.upload-widget__internal--draggable {
+  border-color: black !important;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 640px) {
+  .ancient-scroll-bg-mobile {
+    background-image: url('/hero-background.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-position: center;
+    overflow: hidden;
+    min-height: 100vh;
+    width: 100%;
+  }
+  
+  .footer-text-mobile {
+    font-size: 0.7rem;
+  }
+
 }
