@@ -51,7 +51,7 @@ export async function POST( request: Request) {
       chunkOverlap: 200,
     });
     const splitDocs = await textSplitter.splitDocuments(rawDocs);
-    // Necessary for Mongo - we'll query on this later.
+    
     for (const splitDoc of splitDocs) {
       splitDoc.metadata.docstore_document_id = namespace;
     }
