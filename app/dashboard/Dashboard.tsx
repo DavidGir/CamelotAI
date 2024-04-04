@@ -69,11 +69,11 @@ export default function Dashboard({ docsList }: { docsList: any }) {
       </h1>
       {docsList.length > 0 && (
         <div className="flex flex-col gap-4 mx-10 my-5">
-          <div className="flex flex-col shadow-sm border divide-y-2 sm:min-w-[650px] mx-auto">
+          <div className="flex flex-col divide-y-2 sm:min-w-[650px] mx-auto">
             {docsList.map((doc: any) => (
               <div
                 key={doc.id}
-                className="flex justify-between p-3 hover:bg-gray-100 transition sm:flex-row flex-col sm:gap-0 gap-3"
+                className="flex justify-between border border-gray shadow-lg bg-ancient-beige p-3 hover:bg-gray-100 transition sm:flex-row flex-col sm:gap-0 gap-3 rounded-xl "
               >
                 <button
                   onClick={() => router.push(`/document/${doc.id}`)}
