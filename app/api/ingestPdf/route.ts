@@ -45,13 +45,13 @@ export async function POST( request: Request) {
     const loader = new PDFLoader(buffer);
     const rawDocs = await loader.load();
 
-    /* Split text into chunks */
+    // Split the PDF documents into smaller chunks with the goal of embedding them in Pinecone:
     const textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
       chunkOverlap: 200,
     });
     const splitDocs = await textSplitter.splitDocuments(rawDocs);
-    
+    // Add the namespace to the metadata:
     for (const splitDoc of splitDocs) {
       splitDoc.metadata.docstore_document_id = namespace;
     }
