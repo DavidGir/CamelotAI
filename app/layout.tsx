@@ -2,6 +2,7 @@
 import { ClerkProvider, ClerkLoading, ClerkLoaded } from "@clerk/nextjs";
 // Add web analytics to app from Vercel Analytics:
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Lancelot } from "next/font/google";
 import "../styles/global.css";
 import dynamic from "next/dynamic";
@@ -37,6 +38,7 @@ export default function RootLayout({
       <html lang='en' className={lancelot.className}>
         <body>
           <Analytics />
+          <SpeedInsights />
           <ClerkLoading>
             <div className="fixed bg-ancient-beige top-0 left-0 w-full h-full z-50 flex justify-center items-center">
             <LoadingAnimation />
