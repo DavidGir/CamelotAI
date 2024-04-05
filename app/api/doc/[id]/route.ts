@@ -1,7 +1,7 @@
 import prisma from '../../../lib/prisma';
 import { NextResponse,NextRequest } from 'next/server';
 import { getAuth } from '@clerk/nextjs/server';
-// import { Pinecone } from '@pinecone-database/pinecone';
+import { Pinecone } from '@pinecone-database/pinecone';
 
 export async function DELETE(request: NextRequest) {
   
@@ -23,10 +23,16 @@ export async function DELETE(request: NextRequest) {
         },
       });
 
-    return NextResponse.json({message: `Document ${id} deleted`}, {status:200});
+      // Delete the document vectors from Pinecone namespace:
+      const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY ?? '' })
+      const index = pinecone.index(process.env.PINECONE_INDEX_NAME ?? '')
+      // Delete all vectors from the specific namespace which is the same as document id:
+      await index.namespace(id).deleteAll();
+
+    return NextResponse.json({message: `Document and vectors for ${id} deleted`}, {status:200});
     }
   } catch (error) {
-    return NextResponse.json({error: 'Error deleting document'}, {status:500});
+    return NextResponse.json({error: 'Error deleting document and vectors'}, {status:500});
   }
 
 };
