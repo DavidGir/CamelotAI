@@ -7,6 +7,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import axios from 'axios';
 import DeleteBinIcon from "@/components/ui/DeleteBinIcon";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Dashboard({ docsList }: { docsList: any }) {
   const router = useRouter();
@@ -63,7 +65,8 @@ export default function Dashboard({ docsList }: { docsList: any }) {
     }
   };
 
-  // Function to delete a document:
+  // Function to delete a document and also delete the vectors from Pinecone namespace
+  // It sends a DELETE request to the server:
   async function deleteDocument(id: string) {
     console.log('deleting document', id)
     try {
@@ -72,14 +75,28 @@ export default function Dashboard({ docsList }: { docsList: any }) {
           id: id,
         },
       })
+      toast.success('Document successfully deleted!');
       router.refresh();
     } catch (error) {
-      console.error('Error deleting document dude', error);
+      console.error('Error deleting document', error);
+      toast.error('Failed to delete the document!');
     }
-  }
+  };
 
   return (
     <div className="mx-auto flex flex-col gap-4 container mt-10">
+      <ToastContainer 
+        position="bottom-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover={false}
+        theme="dark"
+      />
       <h1 className="text-4xl leading-[1.1] tracking-tighter font-medium text-center">
         Chat With Your PDFs
       </h1>
