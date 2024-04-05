@@ -1,12 +1,12 @@
 import prisma from '../../../lib/prisma';
 import { NextResponse,NextRequest } from 'next/server';
-import { getAuth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 export async function DELETE(request: NextRequest) {
   
   const id = request.nextUrl.searchParams.get('id');
-  const { userId } = getAuth(request as any);
+  const { userId } = auth();
 
   // Check if the user is authenticated
   if (!userId) {
