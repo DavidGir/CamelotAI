@@ -19,11 +19,11 @@ const Footer = () => {
           </a>
           ,{' '}
           <a
-            href="https://mistral.ai/"
+            href="https://openai.com/product"
             target="_blank"
             className=" font-semibold transition hover:text-black/50"
           >
-            Mixtral
+            OpenAI
           </a>
           ,{' '}
           <a
