@@ -6,6 +6,7 @@ import DocumentIcon from '../../components/ui/DocumentIcon'
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import axios from 'axios';
+import DeleteBinIcon from "@/components/ui/DeleteBinIcon";
 
 export default function Dashboard({ docsList }: { docsList: any }) {
   const router = useRouter();
@@ -62,6 +63,21 @@ export default function Dashboard({ docsList }: { docsList: any }) {
     }
   };
 
+  // Function to delete a document:
+  async function deleteDocument(id: string) {
+    console.log('deleting document', id)
+    try {
+      await axios.delete(`/api/doc/${id}`, {
+        params: {
+          id: id,
+        },
+      })
+      router.refresh();
+    } catch (error) {
+      console.error('Error deleting document dude', error);
+    }
+  }
+
   return (
     <div className="mx-auto flex flex-col gap-4 container mt-10">
       <h1 className="text-4xl leading-[1.1] tracking-tighter font-medium text-center">
@@ -69,11 +85,11 @@ export default function Dashboard({ docsList }: { docsList: any }) {
       </h1>
       {docsList.length > 0 && (
         <div className="flex flex-col gap-4 mx-10 my-5">
-          <div className="flex flex-col divide-y-2 sm:min-w-[650px] mx-auto">
+          <div className="flex flex-col sm:min-w-[650px] mx-auto gap-4">
             {docsList.map((doc: any) => (
               <div
                 key={doc.id}
-                className="flex justify-between border border-gray shadow-lg bg-ancient-beige p-3 hover:bg-gray-100 transition sm:flex-row flex-col sm:gap-0 gap-3 rounded-xl "
+                className="flex justify-between border border-black shadow-lg bg-ancient-beige p-3 hover:bg-gray-100 transition sm:flex-row flex-col sm:gap-0 gap-3 rounded-xl "
               >
                 <button
                   onClick={() => router.push(`/document/${doc.id}`)}
@@ -82,7 +98,12 @@ export default function Dashboard({ docsList }: { docsList: any }) {
                   <DocumentIcon />
                   <span>{doc.fileName}</span>
                 </button>
+                <div className="flex gap-4 items-center">  
                 <span>{formatDistanceToNow(doc.createdAt)} ago</span>
+                <button onClick={() => deleteDocument(doc.id)} className="flex items-center">
+                  <DeleteBinIcon />
+                </button>
+                </div>
               </div>
             ))}
           </div>

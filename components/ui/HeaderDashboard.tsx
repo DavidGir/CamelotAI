@@ -15,6 +15,7 @@ export default async function HeaderDashboard() {
           <div className="flex items-center gap-5">
             {isLoggedIn ? (
               <>
+                <Link href="/dashboard">Dashboard</Link>
                 <UserButton afterSignOutUrl="/" />
               </>
             ) : (

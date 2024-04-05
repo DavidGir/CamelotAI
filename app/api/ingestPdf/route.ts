@@ -5,9 +5,8 @@ import prisma from '../../lib/prisma';
 import { getAuth } from '@clerk/nextjs/server';
 import { loadEmbeddingsModel } from '../utils/embeddings';
 import { loadVectorStore } from '../utils/vector_store';
-import axios from 'axios';
 
-export async function POST( request: Request) {
+export async function POST(request: Request) {
   const { fileUrl, fileName } = await request.json();
 
   const { userId } = getAuth(request as any);
@@ -40,8 +39,8 @@ export async function POST( request: Request) {
 
   try {
     // Load from remote pdf URL using axios:
-    const response = await axios.get(fileUrl, { responseType: 'blob'});
-    const buffer = response.data;
+    const response = await fetch(fileUrl);
+    const buffer = await response.blob();
     const loader = new PDFLoader(buffer);
     const rawDocs = await loader.load();
 
