@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
 import prisma from '../../lib/prisma';
-import { getAuth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import { loadEmbeddingsModel } from '../utils/embeddings';
 import { loadVectorStore } from '../utils/vector_store';
 
 export async function POST(request: Request) {
   const { fileUrl, fileName } = await request.json();
 
-  const { userId } = getAuth(request as any);
+  const { userId } = auth();
 
   if (!userId) {
     return NextResponse.json({ error: 'You must be logged in to ingest data' });
