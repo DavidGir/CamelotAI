@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Message as VercelChatMessage, StreamingTextResponse } from 'ai';
-
 import { createStuffDocumentsChain } from 'langchain/chains/combine_documents';
 import { createRetrievalChain } from 'langchain/chains/retrieval';
 import { createHistoryAwareRetriever } from 'langchain/chains/history_aware_retriever';
-
 import { HumanMessage, AIMessage, ChatMessage } from '@langchain/core/messages';
 import { ChatOpenAI } from "@langchain/openai";
-import {
-  ChatPromptTemplate,
-  MessagesPlaceholder,
-} from '@langchain/core/prompts';
+import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts';
 import { Document } from '@langchain/core/documents';
 import { RunnableSequence } from '@langchain/core/runnables';
 import { HttpResponseOutputParser } from 'langchain/output_parsers';
 import { loadVectorStore } from '../utils/vector_store';
 import { loadEmbeddingsModel } from '../utils/embeddings';
+import { auth } from '@clerk/nextjs';
+
+export const runtime = 'edge';
 
 const formatVercelMessages = (message: VercelChatMessage) => {
   if (message.role === 'user') {
@@ -63,6 +61,8 @@ const answerPrompt = ChatPromptTemplate.fromMessages([
  * https://js.langchain.com/docs/guides/expression_language/cookbook#conversational-retrieval-chain
  */
 export async function POST(req: NextRequest) {
+
+  const { userId } = auth();
 
   try {
     const body = await req.json();
