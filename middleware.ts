@@ -5,5 +5,5 @@ export default authMiddleware({
 });
 // Config obtained from Clerk's Next.js SDK documentation:
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)","/","/(api|trpc)(.*)"],
+  matcher: ["/((?!.+.[w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };
