@@ -6,6 +6,7 @@ import DocumentIcon from '../../components/ui/DocumentIcon'
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import axios from 'axios';
+import DeleteBinIcon from "@/components/ui/DeleteBinIcon";
 
 export default function Dashboard({ docsList }: { docsList: any }) {
   const router = useRouter();
@@ -62,6 +63,21 @@ export default function Dashboard({ docsList }: { docsList: any }) {
     }
   };
 
+  // Function to delete a document:
+  async function deleteDocument(id: string) {
+    console.log('deleting document', id)
+    try {
+      await axios.delete(`/api/doc/${id}`, {
+        params: {
+          id: id,
+        },
+      })
+      router.refresh();
+    } catch (error) {
+      console.error('Error deleting document dude', error);
+    }
+  }
+
   return (
     <div className="mx-auto flex flex-col gap-4 container mt-10">
       <h1 className="text-4xl leading-[1.1] tracking-tighter font-medium text-center">
@@ -82,7 +98,12 @@ export default function Dashboard({ docsList }: { docsList: any }) {
                   <DocumentIcon />
                   <span>{doc.fileName}</span>
                 </button>
+                <div className="flex gap-4 items-center">  
                 <span>{formatDistanceToNow(doc.createdAt)} ago</span>
+                <button onClick={() => deleteDocument(doc.id)} className="flex items-center">
+                  <DeleteBinIcon />
+                </button>
+                </div>
               </div>
             ))}
           </div>
