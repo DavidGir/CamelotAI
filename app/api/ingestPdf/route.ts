@@ -7,7 +7,7 @@ import { loadEmbeddingsModel } from '../utils/embeddings';
 import { loadVectorStore } from '../utils/vector_store';
 import axios from 'axios';
 
-export async function POST( request: Request) {
+export async function POST(request: Request) {
   const { fileUrl, fileName } = await request.json();
 
   const { userId } = getAuth(request as any);
