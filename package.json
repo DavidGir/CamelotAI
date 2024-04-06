@@ -50,6 +50,7 @@
     "react-lottie": "^1.2.4",
     "react-markdown": "^9.0.1",
     "react-toastify": "^10.0.5",
+    "spinners-react": "^1.0.7",
     "tailwindcss": "^3.3.3",
     "zod": "^3.22.2"
   },
