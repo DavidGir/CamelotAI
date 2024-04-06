@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import Link from 'next/link';
 
 interface LogoProps {
   isMobile?: boolean;
@@ -20,7 +19,7 @@ const Logo = ({ isMobile }: LogoProps) => {
         </div>
         {!isMobile ? (
           <h1 className="shadows  text-primary text-[30px] sm:text-[35px] pl-2 pt-3">
-            Camelot
+            CamelotAi
           </h1>
         ) : null}
       </div>
