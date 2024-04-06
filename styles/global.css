@@ -68,8 +68,8 @@ html, body {
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: scroll;
-  background-position: calc(50% - 20px) center;
-  min-height: 200vh;
+  background-position: center;
+  min-height: 100vh;
 }
 
 .ancient-scroll-bg-2 {
@@ -79,6 +79,8 @@ html, body {
   /* background-attachment: scroll; */
   background-position: center;
   /* min-height: 100vh; */
+  overflow: hidden;
+  width: 100%;
 }
 
 /* Overriding pdf dropzone area styling */
@@ -105,7 +107,7 @@ html, body {
     background-position: center;
     overflow: hidden;
     min-height: 100vh;
-    width: 100%;
+    width: fill;
   }
   
   .footer-text-mobile {
