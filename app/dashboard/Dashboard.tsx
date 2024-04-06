@@ -11,33 +11,56 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { SpinnerDotted } from 'spinners-react';
 
-export default function Dashboard({ docsList }: { docsList: any }) {
+// Interface for the document object:
+interface Document {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  createdAt: Date;
+}
+
+// Interface for deletion status:
+interface DeletionStatus {
+  [key: string]: boolean;
+}
+
+export default function Dashboard({   
+  docsList,
+}: {
+  docsList: Document[];
+}) {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
   const [deletionStatus, setDeletionStatus] = useState<DeletionStatus>({});
 
-  type DeletionStatus = {
-    [key: string]: boolean;
-  };
 
   const options = {
     apiKey: !!process.env.NEXT_PUBLIC_BYTESCALE_API_KEY
       ? process.env.NEXT_PUBLIC_BYTESCALE_API_KEY
-      : 'no bytescale api key found',
+      : 'No Bytescale api key found',
     maxFileCount: 1,
     mimeTypes: ['application/pdf'],
+    // layout: "modal",
+    
     editor: { images: { crop: false } },
     styles: {
       colors: {
         primary: "#000000", // Primary buttons & links
         error: "#d23f4d", // Error messages
       },
+      breakpoints: {
+        fullScreenHeight: 420,
+        fullScreenWidth: 750
+      },
     },
     onValidate: async (file: File): Promise<undefined | string> => {
-      return docsList.length > 3
-        ? `You've reached your limit for PDFs.`
-        : undefined;
+      if (docsList.length >= 4) {
+        const errorMessage = 'You have reached the limit of four documents!';
+        toast.error(errorMessage);
+        return errorMessage;
+      }
+      return undefined;
     },
   };
 
@@ -45,16 +68,20 @@ export default function Dashboard({ docsList }: { docsList: any }) {
     <UploadDropzone
       options={options}
       onUpdate={({ uploadedFiles }) => {
-        if (uploadedFiles.length !== 0) {
+        // Check if there is a file and the doc limit hasn't been reached:
+        if (uploadedFiles.length !== 0 && docsList.length < 4) {
           setLoading(true);
           ingestPdf(
             uploadedFiles[0].fileUrl,
             uploadedFiles[0].originalFile.originalFileName || uploadedFiles[0].filePath,
           );
+        } else {
+          // When limit is reached avoid loading spinner:
+          setLoading(false);
         }
       }}
-      width="470px"
-      height="250px"
+      width="450px"
+      height="200px"
       className="upload-dropzone-text upload-widget upload-widget__internal--draggable"
     />
   );
@@ -68,18 +95,20 @@ export default function Dashboard({ docsList }: { docsList: any }) {
       router.push(`/document/${response.data.id}`);
     } catch (error) {
       console.error('Error ingesting PDF', error);
+      toast.error('Failed to ingest the PDF!');
     }
   };
 
   // Function to delete a document and also delete the vectors from Pinecone namespace
   // It sends a DELETE request to the server:
-  async function deleteDocument(id: string) {
+  async function deleteDocument(id: string, fileUrl: string) {
     // Set the loading status for the specific document:
     setDeletionStatus(prevStatus => ({ ...prevStatus, [id]: true }));
     try {
       await axios.delete(`/api/doc/${id}`, {
         params: {
           id: id,
+          fileUrl: fileUrl,
         },
       })
       toast.success('Document successfully deleted!');
@@ -121,7 +150,7 @@ export default function Dashboard({ docsList }: { docsList: any }) {
                 </button>
                 <div className="flex gap-4 items-center">  
                 <span>{formatDistanceToNow(doc.createdAt)} ago</span>
-                <button onClick={() => deleteDocument(doc.id)} className="flex items-center">
+                <button onClick={() => deleteDocument(doc.id, doc.fileUrl)} className="flex items-center">
                   {deletionStatus[doc.id] ? (
                     <SpinnerDotted size={20} thickness={100} speed={140} color="rgba(0, 0, 0, 1)" /> 
                   ) : (
@@ -136,7 +165,7 @@ export default function Dashboard({ docsList }: { docsList: any }) {
       )}
       {docsList.length > 0 ? (
         <h2 className="text-3xl leading-[1.1] tracking-tighter font-medium text-center">
-          Or upload a new doc
+          Upload a new doc
         </h2>
       ) : (
         <h2 className="text-3xl leading-[1.1] tracking-tighter font-medium text-center mt-5">
