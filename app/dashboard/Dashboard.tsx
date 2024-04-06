@@ -9,11 +9,17 @@ import axios from 'axios';
 import DeleteBinIcon from "@/components/ui/DeleteBinIcon";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { SpinnerDotted } from 'spinners-react';
 
 export default function Dashboard({ docsList }: { docsList: any }) {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+  const [deletionStatus, setDeletionStatus] = useState<DeletionStatus>({});
+
+  type DeletionStatus = {
+    [key: string]: boolean;
+  };
 
   const options = {
     apiKey: !!process.env.NEXT_PUBLIC_BYTESCALE_API_KEY
@@ -68,7 +74,8 @@ export default function Dashboard({ docsList }: { docsList: any }) {
   // Function to delete a document and also delete the vectors from Pinecone namespace
   // It sends a DELETE request to the server:
   async function deleteDocument(id: string) {
-    console.log('deleting document', id)
+    // Set the loading status for the specific document:
+    setDeletionStatus(prevStatus => ({ ...prevStatus, [id]: true }));
     try {
       await axios.delete(`/api/doc/${id}`, {
         params: {
@@ -97,9 +104,6 @@ export default function Dashboard({ docsList }: { docsList: any }) {
         pauseOnHover={false}
         theme="dark"
       />
-      <h1 className="text-4xl leading-[1.1] tracking-tighter font-medium text-center">
-        Chat With Your PDFs
-      </h1>
       {docsList.length > 0 && (
         <div className="flex flex-col gap-4 mx-10 my-5">
           <div className="flex flex-col sm:min-w-[650px] mx-auto gap-4">
@@ -118,7 +122,11 @@ export default function Dashboard({ docsList }: { docsList: any }) {
                 <div className="flex gap-4 items-center">  
                 <span>{formatDistanceToNow(doc.createdAt)} ago</span>
                 <button onClick={() => deleteDocument(doc.id)} className="flex items-center">
-                  <DeleteBinIcon />
+                  {deletionStatus[doc.id] ? (
+                    <SpinnerDotted size={20} thickness={100} speed={140} color="rgba(0, 0, 0, 1)" /> 
+                  ) : (
+                    <DeleteBinIcon />
+                  )}
                 </button>
                 </div>
               </div>
@@ -128,11 +136,11 @@ export default function Dashboard({ docsList }: { docsList: any }) {
       )}
       {docsList.length > 0 ? (
         <h2 className="text-3xl leading-[1.1] tracking-tighter font-medium text-center">
-          Or upload a new PDF
+          Or upload a new doc
         </h2>
       ) : (
         <h2 className="text-3xl leading-[1.1] tracking-tighter font-medium text-center mt-5">
-          No PDFs found. Upload a new PDF below!
+          No docs found. Upload a new doc below!
         </h2>
       )}
       <div className="mx-auto min-w-[450px] flex justify-center mb-10">
@@ -141,26 +149,7 @@ export default function Dashboard({ docsList }: { docsList: any }) {
             type="button"
             className="inline-flex items-center mt-4 px-4 py-2 font-semibold leading-6 text-lg shadow rounded-md text-black transition ease-in-out duration-150 cursor-not-allowed"
           >
-            <svg
-              className="animate-spin -ml-1 mr-3 h-5 w-5 text-black"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
+            <SpinnerDotted size={20} thickness={100} speed={140} color="rgba(0, 0, 0, 1)" className="mr-4" />
             Ingesting your PDF...
           </button>
         ) : (
