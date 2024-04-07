@@ -3,8 +3,8 @@ import Logo from '../ui/Logo';
 
 const Footer = () => {
   return (
-    <footer className="bg-ancient-beige pt-3 bottom-0 w-full">
-      <div className="container w-full flex flex-row sm:flex-row justify-between items-center sm:items-center sm:h-[77px] pb-6 sm:pt-0 px-2 sm:px-0 mx-auto">
+    <footer className="bg-ancient-beige bottom-0 w-full">
+      <div className="container w-full flex flex-row sm:flex-row justify-between items-center sm:items-center sm:h-[77px] sm:pt-0 px-2 sm:px-0 mx-auto">
       <div className="flex flex-row items-center text-lg sm:text-xl sm:mb-0">
         <Logo isMobile={true}/>
         </div>
