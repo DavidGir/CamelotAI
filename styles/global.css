@@ -97,6 +97,13 @@ html, body {
   border-color: black !important;
 }
 
+.truncate-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
+
 /* Mobile-specific adjustments */
 @media (max-width: 640px) {
   .ancient-scroll-bg-mobile {
