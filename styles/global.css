@@ -114,7 +114,7 @@ html, body {
     background-position: center;
     overflow: hidden;
     min-height: 100vh;
-    width: fill;
+    width: stretch;
   }
   
   .footer-text-mobile {
