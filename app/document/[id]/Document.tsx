@@ -3,61 +3,35 @@
 import { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Markdown from 'react-markdown';
-import { Viewer, Worker } from '@react-pdf-viewer/core';
-import '@react-pdf-viewer/core/lib/styles/index.css';
-import '@react-pdf-viewer/default-layout/lib/styles/index.css';
-import type {
-  ToolbarSlot,
-  TransformToolbarSlot,
-} from '@react-pdf-viewer/toolbar';
-import { toolbarPlugin } from '@react-pdf-viewer/toolbar';
-import { pageNavigationPlugin } from '@react-pdf-viewer/page-navigation';
 import { Document } from '@prisma/client';
 import { useChat } from 'ai/react';
-import ToggleViews from '@/components/ui/ToggleViews';
 import LoadingDots from '@/components/ui/LoadingDots';
-import { highlightPlugin, HighlightArea } from '@react-pdf-viewer/highlight';
-import '@react-pdf-viewer/highlight/lib/styles/index.css';
+import DocumentTabs from '@/components/ui/DocumentTabs';
 
 export default function DocumentClient({
-  currentDoc,
+  docsList,
   userImage,
+  selectedDocId
 }: {
-  currentDoc: Document;
+  docsList: Document[];
   userImage?: string;
+  selectedDocId: string;
 }) {
-  const toolbarPluginInstance = toolbarPlugin();
-  const pageNavigationPluginInstance = pageNavigationPlugin();
-  const { renderDefaultToolbar, Toolbar } = toolbarPluginInstance;
-
-  const transform: TransformToolbarSlot = (slot: ToolbarSlot) => ({
-    ...slot,
-    Download: () => <></>,
-    SwitchTheme: () => <></>,
-    Open: () => <></>,
-  });
-
-  const chatId = currentDoc.id;
-  const pdfUrl = currentDoc.fileUrl;
-
   const [sourcesForMessages, setSourcesForMessages] = useState<
-    Record<string, any>
-  >({});
+  Record<string, any>
+  >({});  
   const [error, setError] = useState('');
-  const [chatOnlyView, setChatOnlyView] = useState(false);
-  const [highlights, setHighlights] = useState<HighlightArea[]>([]);
-
-
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+  const [navigateToPage, setNavigateToPage] = useState<{ docIndex: number, pageNumber: number } | null>(null);
+  const [selectedDocIndex, setSelectedDocIndex] = useState(0);
+  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages, setInput } =
     useChat({
       api: '/api/chat',
       body: {
-        chatId,
+        chatId: docsList[selectedDocIndex]?.id,
       },
       onResponse(response) {
         const sourcesHeader = response.headers.get('x-sources');
         const sources = sourcesHeader ? JSON.parse(atob(sourcesHeader)) : [];
-
         const messageIndexHeader = response.headers.get('x-message-index');
         if (sources.length && messageIndexHeader !== null) {
           setSourcesForMessages({
@@ -71,6 +45,24 @@ export default function DocumentClient({
       },
       onFinish() {},
     });
+
+  useEffect(() => {
+    const newSelectedIndex = docsList.findIndex(doc => doc.id === selectedDocId);
+    if (newSelectedIndex !== -1) {
+      setSelectedDocIndex(newSelectedIndex);
+    }
+  }, [selectedDocId, docsList]);
+
+  // Trigger chat session update on document tab switch
+  useEffect(() => {
+    handleInputChange({ target: { value: input } } as React.ChangeEvent<HTMLTextAreaElement>);
+  }, [selectedDocIndex, handleInputChange, input]);
+
+  // Clear chat and reset input when switching documents
+  useEffect(() => {
+    setMessages([]);
+    setInput('');
+  }, [selectedDocIndex, setMessages, setInput]);
 
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -88,7 +80,7 @@ export default function DocumentClient({
     }
   };
 
-  let userProfilePic = userImage ? userImage : '/profile-icon.png';
+  let userProfilePic = userImage || '/profile-icon.png';
 
   const extractSourcePageNumber = (source: {
     metadata: Record<string, any>;
@@ -96,49 +88,11 @@ export default function DocumentClient({
     return source.metadata['loc.pageNumber'] ?? source.metadata.loc?.pageNumber;
   };
 
-  const highlightPluginInstance = highlightPlugin({
-    renderHighlights: ({ getCssProperties }) => (
-      <>
-        {highlights.map((area, i) => (
-      <div 
-        key={i}
-        style={{
-          ...getCssProperties(area, 0),
-          background: 'yellow', 
-          opacity: 0.4,
-          position: 'absolute',
-        }} 
-      />
-    ))}
-      </>
-    ),
-  });
-
   return (
     <div className="mx-auto flex flex-col no-scrollbar -mt-2">
-      <ToggleViews chatOnlyView={chatOnlyView} setChatOnlyView={setChatOnlyView} />
       <div className="flex justify-between w-full lg:flex-row flex-col sm:space-y-20 lg:space-y-0 p-2">
         {/* Left hand side */}
-        <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.js">
-          <div
-            className={`w-full h-[90vh] flex-col text-white !important ${
-              chatOnlyView ? 'hidden' : 'flex'
-            }`}
-          >
-            <div
-              className="align-center bg-[#eeeeee] flex p-1"
-              style={{
-                borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
-              }}
-            >
-              <Toolbar>{renderDefaultToolbar(transform)}</Toolbar>
-            </div>
-            <Viewer
-              fileUrl={pdfUrl as string}
-              plugins={[toolbarPluginInstance, pageNavigationPluginInstance, highlightPluginInstance]}
-            />
-          </div>
-        </Worker>
+          <DocumentTabs docsList={docsList} navigateToPage={navigateToPage} onTabSelect={setSelectedDocIndex} selectedTab={selectedDocIndex}/>
         {/* Right hand side */}
         <div className="flex flex-col w-full justify-between align-center h-[90vh] chat-font-family no-scrollbar">
           <div
@@ -201,20 +155,18 @@ export default function DocumentClient({
                       {(isLastMessage || previousMessages) && sources && (
                         <div className="flex space-x-4 ml-14 mt-3">
                           {uniqueAndSortedSources.map((source: any) => (
-                              <button
-                                key={`source-${extractSourcePageNumber(source)}`}
-                                className="border bg-gray-200 px-3 py-1 hover:bg-gray-100 transition rounded-lg"
-                                onClick={() => {
-                                  const pageNumber = extractSourcePageNumber(source);
-                                  pageNavigationPluginInstance.jumpToPage(Number(pageNumber) - 1);
-                                  if (source.metadata.highlightAreas) {
-                                    setHighlights(source.metadata.highlightAreas);
-                                  }
-                                }}
-                              >
-                                p. {extractSourcePageNumber(source)}
-                              </button>
-                            ))}
+                            <button
+                              key={`source-${extractSourcePageNumber(source)}`}
+                              className="border bg-gray-200 px-3 py-1 hover:bg-gray-100 transition rounded-lg"
+                              onClick={() => {
+                                const pageNumber = extractSourcePageNumber(source);
+                                // Update the navigateToPage state to indicate the desired document and page
+                                setNavigateToPage({ docIndex: selectedDocIndex, pageNumber: pageNumber - 1 });
+                              }}
+                            >
+                              p. {extractSourcePageNumber(source)}
+                            </button>
+                          ))}
                         </div>
                       )}
                     </div>
