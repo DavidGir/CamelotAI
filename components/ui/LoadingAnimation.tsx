@@ -1,31 +1,12 @@
 'use client'
 
-import React, { useState } from 'react';
-import Lottie from 'react-lottie';
+import React from 'react';
+import Lottie from 'lottie-react';
+import animationData from '../../public/animation1.json';
 
 const LoadingAnimation = () => {
-  const [animationState] = useState({
-    isStopped: false,
-    isPaused: false,
-  });
-
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: require('../../public/animation1.json'),
-    rendererSettings: {
-      preserveAspectRatio: 'xMidYMid slice',
-    },
-  };
-
   return (
-    <Lottie
-      options={defaultOptions}
-      height={400}
-      width={400}
-      isStopped={animationState.isStopped}
-      isPaused={animationState.isPaused}
-    />
+    <Lottie animationData={animationData} loop={true} autoplay={true} style={{ width: 400, height: 400 }} />
   );
 };
 
