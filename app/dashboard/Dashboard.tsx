@@ -95,7 +95,10 @@ export default function Dashboard({
           console.error('Error during ingestion:', error);
           toast.error('Failed to ingest the PDF!');
         })))
-      // .then(() => setLoading(false));
+      .then(() => {
+        setLoading(false);
+        router.refresh();
+      });
   };
 
   // Function to ingest a PDF file:
