@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import '../../styles/animated-searchbar-intro.css';
 
-const phrases = ["Ask Camelot questions about a given Resume", "Ask Camelot about specific information in contracts", "Ask Camelot to summarize your documents"];
+const phrases = ["Ask Camelot questions about a given Resume", "Ask Camelot about your contracts", "Ask Camelot to summarize your documents"];
 
 export default function AnimatedSearchBarIntro() {
     const [phraseIndex, setPhraseIndex] = useState(0);

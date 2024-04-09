@@ -21,6 +21,7 @@ const Footer = () => {
           <a
             href="https://openai.com/product"
             target="_blank"
+            rel="noopener noreferrer"
             className=" font-semibold transition hover:text-black/50"
           >
             OpenAI
@@ -29,6 +30,7 @@ const Footer = () => {
           <a
             href="https://www.pinecone.io/"
             target="_blank"
+            rel="noopener noreferrer"
             className="font-semibold transition hover:text-black/50"
           >
             Pinecone
@@ -37,6 +39,7 @@ const Footer = () => {
           <a
             href="https://www.langchain.com/"
             target="_blank"
+            rel="noopener noreferrer"
             className="font-semibold transition hover:text-black/50"
           >
             Langchain
@@ -47,6 +50,8 @@ const Footer = () => {
           <div className="flex space-x-4 sm:pb-0">
             <Link
               href="https://github.com/DavidGir/Camelot"
+              target="_blank"
+              rel="noopener noreferrer"
               className="group"
               aria-label="GitHub"
             >
