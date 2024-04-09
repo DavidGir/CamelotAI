@@ -5,21 +5,27 @@ import Document from './Document';
 
 export default async function Page({ params }: { params: { id: string } }) {
   const user: User | null = await currentUser();
+  // Get the document ID from the dynamic route params
+  // This is the ID that will help to determine which document is selected and which tab should be active 
+  const docId = params.id;
 
-  const currentDoc = await prisma.document.findFirst({
+  const documents = await prisma.document.findMany({
     where: {
-      id: params.id,
       userId: user?.id,
     },
+    orderBy: {
+      createdAt: 'asc',
+    },
+    take: 4,
   });
 
-  if (!currentDoc) {
-    return <div>This document was not found</div>;
+  if (!documents || documents.length === 0) {
+    return <div>No documents were found.</div>;
   }
 
   return (
     <div>
-      <Document currentDoc={currentDoc} userImage={user?.imageUrl} />
+      <Document docsList={documents} userImage={user?.imageUrl} selectedDocId={docId} />
     </div>
   );
 }
