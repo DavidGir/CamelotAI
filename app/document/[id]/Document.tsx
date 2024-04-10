@@ -23,6 +23,7 @@ export default function DocumentClient({
   const [error, setError] = useState('');
   const [navigateToPage, setNavigateToPage] = useState<{ docIndex: number, pageNumber: number } | null>(null);
   const [selectedDocIndex, setSelectedDocIndex] = useState(0);
+
   const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages, setInput } =
     useChat({
       api: '/api/chat',
@@ -45,6 +46,28 @@ export default function DocumentClient({
       },
       onFinish() {},
     });
+
+  // Sample questions to guide the user.
+  const sampleQuestions = ["What is the main topic?", "Summarize the document.", "Explain key points."];
+
+  // Function to programmatically submit a question to the chat
+  const handleSampleQuestionClick = (question: string) => {
+    // Update the input (question asked) state and ensure the UI updates
+    setInput(question);
+
+    // Wait for the next event loop tick to ensure state and UI updates have occurred
+    setTimeout(() => {
+      // Create and dispatch a synthetic 'Enter' key press event to submit the form
+      const enterKeyPressEvent = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        code: 'Enter',
+        bubbles: true,
+      });
+
+      // Dispatch it to the textarea input
+      textAreaRef.current?.dispatchEvent(enterKeyPressEvent);
+    }, 0);
+  };
 
   useEffect(() => {
     const newSelectedIndex = docsList.findIndex(doc => doc.id === selectedDocId);
@@ -104,9 +127,26 @@ export default function DocumentClient({
               className="w-full h-full overflow-y-scroll no-scrollbar rounded-md mt-4"
             >
               {messages.length === 0 && (
-                <div className="flex justify-center h-full items-center text-xl">
-                  Ask your first question below!
+              <div className="flex flex-col justify-center items-center text-xl h-full">
+                {/* Chatbot avatar and greeting */}
+                <div className="flex flex-col items-center p-4">
+                  <Image src="/logo.png" alt="Chatbot Avatar" width={50} height={50} />
+                  <p className="text-lg mt-2">How can I assist you with your documents?</p>
                 </div>
+
+                {/* Sample questions */}
+                <div className="flex gap-2 flex-wrap justify-center p-4">
+                  {sampleQuestions.map((question, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSampleQuestionClick(question)}
+                      className="bg-black hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full cursor-pointer"
+                    >
+                      {question}
+                    </button>
+                  ))}
+                </div>
+              </div>
               )}
               {messages.map((message, index) => {
                 const sources = sourcesForMessages[index] || [];
@@ -177,6 +217,7 @@ export default function DocumentClient({
           </div>
           <div className="flex justify-center items-center sm:h-[15vh] h-[20vh]">
             <form
+              id="chatForm"
               onSubmit={(e) => handleSubmit(e)}
               className="relative w-full px-4 sm:pt-10 pt-2"
             >
