@@ -1,4 +1,4 @@
-import prisma from '../../lib/prisma';
+import prisma from '../../utils/prisma';
 import { currentUser } from '@clerk/nextjs';
 import type { User } from '@clerk/nextjs/api';
 import Document from './Document';
