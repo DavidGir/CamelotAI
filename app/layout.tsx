@@ -42,9 +42,7 @@ export default function RootLayout({
           <Analytics />
           <SpeedInsights />
           <ClerkLoading>
-            <div className="fixed bg-ancient-beige top-0 left-0 w-full h-full z-50 flex justify-center items-center">
             <LoadingAnimation />
-            </div>
           </ClerkLoading>
           <ClerkLoaded>
             {children}
