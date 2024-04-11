@@ -109,16 +109,23 @@ export default function Dashboard({
   // Function to ingest a PDF file:
   async function ingestPdf(fileUrl: string, fileName: string) {
     try {
+      setLoading(true);
       const response = await axios.post('/api/ingestPdf', {
         fileUrl,
         fileName,
       });
-      router.push(`/document/${response.data.id}`);
+      if (response.data.id) {
+        setLoading(false);
+        router.push(`/document/${response.data.id}`);
+      } else {
+        throw new Error('No document ID returned after ingestion');
+      }
     } catch (error) {
       console.error('Error ingesting PDF', error);
       notifyUser('Failed to ingest the PDF!', {
         type: 'error',
       });
+      setLoading(false);
     }
   };
 
@@ -134,12 +141,12 @@ export default function Dashboard({
           fileUrl: fileUrl,
         },
       })
-      // Clear any queued toasts before showing a new one:
-      clearToastQueue();
       notifyUser('Document successfully deleted!', {
         type: 'success',
       });
       router.refresh();
+      // Clear any queued toasts before showing a new one:
+      clearToastQueue();
     } catch (error) {
       console.error('Error deleting document', error);
       notifyUser('Failed to delete the document!', {
