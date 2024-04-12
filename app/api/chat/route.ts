@@ -12,6 +12,7 @@ import { HttpResponseOutputParser } from 'langchain/output_parsers';
 import { loadVectorStore } from '../utils/vector_store';
 import { loadEmbeddingsModel } from '../utils/embeddings';
 import { auth } from '@clerk/nextjs';
+import answerSystemTemplate from '../../../templates/answerSystemTemplate';
 
 export const runtime = 'edge';
 
@@ -37,15 +38,7 @@ const historyAwarePrompt = ChatPromptTemplate.fromMessages([
   ],
 ]);
 
-const ANSWER_SYSTEM_TEMPLATE = `You are a helpful AI assistant by the name of Camelot. Use the following pieces of context to answer the question at the end.
-If you don't know the answer, just say you don't know. DO NOT try to make up an answer.
-If the question is not related to the context, politely respond that you are tuned to only answer questions that are related to the context.
-
-<context>
-{context}
-</context>
-
-Please return your answer in markdown with clear headings and lists. When summarizing, make sure to include the most important points using bullet points for clarity.`;
+const ANSWER_SYSTEM_TEMPLATE = answerSystemTemplate;
 
 const answerPrompt = ChatPromptTemplate.fromMessages([
   ['system', ANSWER_SYSTEM_TEMPLATE],
@@ -77,7 +70,7 @@ export async function POST(req: NextRequest) {
     const chatId = body.chatId;
 
     const model = new ChatOpenAI({
-      modelName: 'gpt-4-0613',
+      modelName: 'gpt-4',
       temperature: 0,
     });
 

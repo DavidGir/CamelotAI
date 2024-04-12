@@ -7,10 +7,9 @@ import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import axios from 'axios';
 import DeleteBinIcon from "@/components/ui/DeleteBinIcon";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { SpinnerDotted } from 'spinners-react';
 import '../../styles/global.css';
+import notifyUser, { clearToastQueue } from "@/app/utils/notifyUser";
 
 // Interface for the document object:
 interface Document {
@@ -61,7 +60,9 @@ export default function Dashboard({
   // Function to handle the completion of the upload process within the Bytescale widget:
   const handleComplete = (files: any) => {
     if (docsList.length + files.length > 4) {
-      toast.error('You cannot upload more than four documents.');
+      notifyUser('You cannot upload more than four documents.', {
+        type: 'error',
+      });
       return;
     }
     // Create a set to track unique file names in the current batch
@@ -79,7 +80,9 @@ export default function Dashboard({
       
     // Notify the user if there are duplicates:
     if (newFiles.length < files.length) {
-      toast.warn('Duplicate documents are not uploaded.');
+      notifyUser('Duplicate documents are not uploaded.', {
+        type: 'warning',
+      });
     }
 
     if (newFiles.length === 0) {
@@ -93,7 +96,9 @@ export default function Dashboard({
       ingestPdf(file.fileUrl, file.originalFile.originalFileName || file.filePath)
         .catch(error => {
           console.error('Error during ingestion:', error);
-          toast.error('Failed to ingest the PDF!');
+          notifyUser('Failed to ingest the PDF!', {
+            type: 'error',
+          });
         })))
       .then(() => {
         setLoading(false);
@@ -104,14 +109,23 @@ export default function Dashboard({
   // Function to ingest a PDF file:
   async function ingestPdf(fileUrl: string, fileName: string) {
     try {
+      setLoading(true);
       const response = await axios.post('/api/ingestPdf', {
         fileUrl,
         fileName,
       });
-      router.push(`/document/${response.data.id}`);
+      if (response.data.id) {
+        setLoading(false);
+        router.push(`/document/${response.data.id}`);
+      } else {
+        throw new Error('No document ID returned after ingestion');
+      }
     } catch (error) {
       console.error('Error ingesting PDF', error);
-      toast.error('Failed to ingest the PDF!');
+      notifyUser('Failed to ingest the PDF!', {
+        type: 'error',
+      });
+      setLoading(false);
     }
   };
 
@@ -127,32 +141,22 @@ export default function Dashboard({
           fileUrl: fileUrl,
         },
       })
-      toast.success('Document successfully deleted!');
+      notifyUser('Document successfully deleted!', {
+        type: 'success',
+      });
       router.refresh();
+      // Clear any queued toasts before showing a new one:
+      clearToastQueue();
     } catch (error) {
       console.error('Error deleting document', error);
-      toast.error('Failed to delete the document!');
-    } finally {
-      // Clear toast notifications as they pop up one after another:
-      toast.clearWaitingQueue();
+      notifyUser('Failed to delete the document!', {
+        type: 'error',
+      });
     }
   };
 
   return (
     <div className="mx-auto flex flex-col gap-4 container mt-10">
-      <ToastContainer 
-        position="bottom-right"
-        autoClose={4000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover={false}
-        theme="dark"
-        limit={1}
-      />
       {docsList.length > 0 && (
         <div className="flex flex-col gap-4 mx-10 my-5">
           <div className="flex flex-col sm:min-w-[650px] mx-auto gap-4">

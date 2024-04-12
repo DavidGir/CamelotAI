@@ -1,7 +1,9 @@
-import prisma from '../../lib/prisma';
+import prisma from '../../utils/prisma';
 import { currentUser } from '@clerk/nextjs';
 import type { User } from '@clerk/nextjs/api';
 import Document from './Document';
+import { Suspense } from 'react';
+import Loading from './loading';
 
 export default async function Page({ params }: { params: { id: string } }) {
   const user: User | null = await currentUser();
@@ -25,7 +27,9 @@ export default async function Page({ params }: { params: { id: string } }) {
 
   return (
     <div>
-      <Document docsList={documents} userImage={user?.imageUrl} selectedDocId={docId} />
+      <Suspense fallback={<Loading />}>
+        <Document docsList={documents} userImage={user?.imageUrl} selectedDocId={docId} />
+      </Suspense>
     </div>
   );
 }

@@ -6,7 +6,9 @@ import animationData from '../../public/animation1.json';
 
 const LoadingAnimation = () => {
   return (
-    <Lottie animationData={animationData} loop={true} autoplay={true} style={{ width: 400, height: 400 }} />
+    <div className="fixed bg-ancient-beige top-0 left-0 w-full h-full z-50 flex justify-center items-center">
+       <Lottie animationData={animationData} loop={true} autoplay={true} style={{ width: 400, height: 400 }} />       
+    </div>
   );
 };
 

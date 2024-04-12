@@ -1,12 +1,19 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Markdown from 'react-markdown';
 import { Document } from '@prisma/client';
 import { useChat } from 'ai/react';
 import LoadingDots from '@/components/ui/LoadingDots';
 import DocumentTabs from '@/components/ui/DocumentTabs';
+import { FaVolumeHigh } from "react-icons/fa6";
+import { SpinnerDotted } from 'spinners-react';
+import { Voice as VoiceResponse } from 'elevenlabs/api';
+import useLocalStorage from '@/app/hooks/useLocalStorage';
+import notifyUser from "@/app/utils/notifyUser";
+import getVoices from '@/app/utils/getVoices';
+import ChatVoice from '@/components/ui/ChatVoice';
 
 export default function DocumentClient({
   docsList,
@@ -23,6 +30,19 @@ export default function DocumentClient({
   const [error, setError] = useState('');
   const [navigateToPage, setNavigateToPage] = useState<{ docIndex: number, pageNumber: number } | null>(null);
   const [selectedDocIndex, setSelectedDocIndex] = useState(0);
+  // Ref hook to update the audio element
+  const audioRef = useRef<HTMLAudioElement>(null);
+  // Store the list of voices from ElevenLabs
+  const [voices, setVoices] = useState<VoiceResponse[]>([]);
+  // Store the state of the audio response
+  const [savedAudioUrls, setSavedAudioUrls] = useLocalStorage<Record<string, string>>('savedAudioUrls', {});  
+  // Store the name of the selected voice
+  const [selectedVoice, setSelectedVoice] = useLocalStorage<string>('selectedVoice', 'Camelot');
+  // Store the state of generating an audio response.
+  const [audioLoading, setAudioLoading] = useState<Record<number, boolean>>({});
+
+
+
   const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages, setInput } =
     useChat({
       api: '/api/chat',
@@ -45,6 +65,92 @@ export default function DocumentClient({
       },
       onFinish() {},
     });
+
+  const requestTextToSpeech = useCallback(async (text: string, index: number) => {
+    // Use both text and voice as the key to allow different audio URLs per voice
+    const key = `${text}-${selectedVoice}`;
+    // Check if the audio URL already exists in the local storage
+    // Avoid making a API request if the audio URL is already saved
+    const currentAudioUrl = savedAudioUrls[key];
+    if (currentAudioUrl && audioRef.current) {
+      audioRef.current.src = currentAudioUrl;
+      audioRef.current.play();
+      return;
+    }
+    
+    try {
+      setAudioLoading(prev => ({ ...prev, [index]: true }));
+      const response = await fetch("/api/textToSpeech", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({   
+          message: text,
+          voice: selectedVoice
+        })
+      });
+
+      if (!response.ok) throw new Error("TTS conversion failed.");
+
+      // Notify the user if the ElevenLabs API Key is invalid.
+      if (response.status === 401) {
+        notifyUser("Your ElevenLabs API Key is invalid. Kindly check and try again.", {
+          type: "error",
+        });
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Update local storage with the new audio URLs, including the voice in the key
+      setSavedAudioUrls(prevAudioUrls => ({ ...prevAudioUrls, [key]: audioUrl }));
+      
+      if (audioRef.current) {
+        audioRef.current.src = audioUrl;
+        audioRef.current.play().finally(() => {
+          setAudioLoading(prev => ({ ...prev, [index]: false }));
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      setError("Failed to fetch TTS data.");
+      setAudioLoading(prev => ({ ...prev, [index]: false }));
+    }
+  }, [savedAudioUrls, setSavedAudioUrls, selectedVoice]);
+
+
+  useEffect(() => {
+    // Fetch the voices from the getVoices() utility and store them.
+    getVoices()
+      .then((voices) => {
+        setVoices(voices ?? []);
+      })
+      .catch((error) => {
+        console.error("Error fetching voices:", error);
+      });
+  }, []);
+
+
+  // Sample questions to guide the user.
+  const sampleQuestions = ["What is the main topic?", "Summarize the document.", "Explain key points."];
+
+  // Function to programmatically submit a question to the chat
+  const handleSampleQuestionClick = (question: string) => {
+    // Update the input (question asked) state and ensure the UI updates
+    setInput(question);
+
+    // Wait for the next event loop tick to ensure state and UI updates have occurred
+    setTimeout(() => {
+      // Create and dispatch a synthetic 'Enter' key press event to submit the form
+      const enterKeyPressEvent = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        code: 'Enter',
+        bubbles: true,
+      });
+
+      // Dispatch it to the textarea input
+      textAreaRef.current?.dispatchEvent(enterKeyPressEvent);
+    }, 0);
+  };
 
   useEffect(() => {
     const newSelectedIndex = docsList.findIndex(doc => doc.id === selectedDocId);
@@ -94,19 +200,41 @@ export default function DocumentClient({
         {/* Left hand side */}
           <DocumentTabs docsList={docsList} navigateToPage={navigateToPage} onTabSelect={setSelectedDocIndex} selectedTab={selectedDocIndex}/>
         {/* Right hand side */}
-        <div className="flex flex-col w-full justify-between align-center h-[90vh] chat-font-family no-scrollbar">
+        <div className="flex flex-col w-full justify-between align-center h-[90vh] no-scrollbar">
+        <ChatVoice {...{ voices, selectedVoice, setSelectedVoice }} /> 
           <div
             className={`w-full min-h-min bg-white border flex justify-center items-center no-scrollbar sm:h-[85vh] h-[80vh]
             `}
           >
+           
             <div
               ref={messageListRef}
               className="w-full h-full overflow-y-scroll no-scrollbar rounded-md mt-4"
             >
+              
               {messages.length === 0 && (
-                <div className="flex justify-center h-full items-center text-xl">
-                  Ask your first question below!
+              <div className="flex flex-col justify-center items-center text-xl h-full">
+                 
+                {/* Chatbot avatar and greeting */}
+                
+                <div className="flex flex-col items-center p-4">
+                  <Image src="/logo.png" alt="Chatbot Avatar" width={50} height={50} />
+                  <p className="text-lg mt-2">How can I assist you with your documents?</p>
                 </div>
+
+                {/* Sample questions */}
+                <div className="flex gap-2 flex-wrap justify-center p-4">
+                  {sampleQuestions.map((question, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSampleQuestionClick(question)}
+                      className="bg-black hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full cursor-pointer"
+                    >
+                      {question}
+                    </button>
+                  ))}
+                </div>
+              </div>
               )}
               {messages.map((message, index) => {
                 const sources = sourcesForMessages[index] || [];
@@ -123,34 +251,61 @@ export default function DocumentClient({
                   .sort((a: any, b: any) => extractSourcePageNumber(a) - extractSourcePageNumber(b));
 
                 return (
-                  <div key={`chatMessage-${index}`}>
+                  <div key={`chatMessage-${index}`} className="flex flex-col justify-between">
                     <div
                       className={`p-4 text-black animate ${
                         message.role === 'assistant'
                           ? 'bg-gray-100'
                           : isLoading && index === messages.length - 1
-                          ? 'animate-pulse bg-white'
+                          ? 'motion-safe:animate-pulse mr-8 bg-white'
                           : 'bg-white'
                       }`}
                     >
-                      <div className="flex">
-                        <Image
-                          key={index}
-                          src={
-                            message.role === 'assistant'
-                              ? '/logo.png'
-                              : userProfilePic
-                          }
-                          alt="profile image"
-                          width={message.role === 'assistant' ? '35' : '33'}
-                          height="30"
-                          className="mr-4 rounded-sm h-full"
-                          priority
-                        />
-                        <Markdown className="prose">
-                          {message.content}
-                        </Markdown>
-                      </div>
+                      {/* Check the role of the message and adjust the layout accordingly */}                      
+                      {message.role === 'assistant' ? (
+                      // For the assistant's messages, show the chatbot icon on the left
+                        <div className="flex items-start">
+                          <div className="flex flex-col items-center mr-4" style={{ flexShrink: 0 }}>
+                            <Image
+                              src="/logo.png"
+                              alt="assistant image"
+                              width="35"
+                              height="30"
+                              className="rounded-full flex-shrink-0"
+                              priority
+                            />
+                
+                            <button 
+                              title="Play audio response"
+                              className="mt-2 flex-shrink-0"
+                              onClick={() => requestTextToSpeech(message.content, index)}
+                            >
+                              {audioLoading[index] ? (
+                                <SpinnerDotted size={20} thickness={100} speed={140} color="rgba(0, 0, 0, 1)" /> 
+                              ) : (
+                                <FaVolumeHigh />
+                              )}
+                            </button>
+                            {/* Audio element for playing response */}
+                            <audio ref={audioRef} controls style={{ display: 'none' }}></audio>                        
+                          </div>
+                          <Markdown className="prose">{message.content}</Markdown>
+                        </div>
+                      ) : (
+                        // For the user's messages, show the profile image on the right
+                        <div className="flex items-center justify-end">
+                          <Markdown className="prose">{message.content}</Markdown>
+                          <Image
+                            src={userProfilePic}
+                            alt="user image"
+                            width="33"
+                            height="30"
+                            className="ml-4 rounded-full"
+                            priority
+                          />
+                        </div>
+                      )}
+
                       {/* Display the sources */}
                       {(isLastMessage || previousMessages) && sources && (
                         <div className="flex space-x-4 ml-14 mt-3">
@@ -177,6 +332,7 @@ export default function DocumentClient({
           </div>
           <div className="flex justify-center items-center sm:h-[15vh] h-[20vh]">
             <form
+              id="chatForm"
               onSubmit={(e) => handleSubmit(e)}
               className="relative w-full px-4 sm:pt-10 pt-2"
             >
@@ -193,7 +349,7 @@ export default function DocumentClient({
                 id="userInput"
                 name="userInput"
                 placeholder={
-                  isLoading ? 'Waiting for response...' : 'Ask me anything...'
+                  isLoading ? 'Waiting for response...' : 'Ask your question...'
                 }
               />
               <button
@@ -222,6 +378,9 @@ export default function DocumentClient({
               <p className="text-red-500">{error}</p>
             </div>
           )}
+          <div className="flex justify-center items-center p-4">
+            <p> CamelotAi can make mistakes. Consider checking and verifying documents. </p>
+          </div>
         </div>
       </div>
     </div>
