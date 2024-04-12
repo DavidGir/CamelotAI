@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
-import prisma from '../../lib/prisma';
-import { getAuth } from '@clerk/nextjs/server';
+import prisma from '../../utils/prisma';
+import { auth } from '@clerk/nextjs/server';
 import { loadEmbeddingsModel } from '../utils/embeddings';
 import { loadVectorStore } from '../utils/vector_store';
-import axios from 'axios';
 
-export async function POST( request: Request) {
+export async function POST(request: Request) {
   const { fileUrl, fileName } = await request.json();
 
-  const { userId } = getAuth(request as any);
+  const { userId } = auth();
 
   if (!userId) {
     return NextResponse.json({ error: 'You must be logged in to ingest data' });
@@ -40,18 +39,18 @@ export async function POST( request: Request) {
 
   try {
     // Load from remote pdf URL using axios:
-    const response = await axios.get(fileUrl, { responseType: 'blob'});
-    const buffer = response.data;
+    const response = await fetch(fileUrl);
+    const buffer = await response.blob();
     const loader = new PDFLoader(buffer);
     const rawDocs = await loader.load();
 
-    /* Split text into chunks */
+    // Split the PDF documents into smaller chunks with the goal of embedding them in Pinecone:
     const textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
       chunkOverlap: 200,
     });
     const splitDocs = await textSplitter.splitDocuments(rawDocs);
-    // Necessary for Mongo - we'll query on this later.
+    // Add the namespace to the metadata:
     for (const splitDoc of splitDocs) {
       splitDoc.metadata.docstore_document_id = namespace;
     }
