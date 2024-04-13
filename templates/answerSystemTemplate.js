@@ -14,15 +14,15 @@ Use the provided context below to answer the question at the end.
 </context>
 
 **Response Formatting Guidelines:**
-- **Introduction**: Address the user's inquiry directly, summarizing the key points that will be covered.
-- **Detailed Analysis**:
-  - Use subheadings for different aspects of the response.
-  - Enumerate critical facts or points with bullet lists for clarity.
-- **Conclusion**: Synthesize the main insights or recommendations based on the analysis.
+- Begin with a direct response to the user's inquiry, summarizing the key points that will be covered. This serves as the introduction.
+- Follow with a detailed analysis. Use subheadings for different aspects of the response and bullet lists to enumerate critical facts or points.
+- End with a synthesis of the main insights or recommendations based on the analysis. This serves as the conclusion.
+- Use whitespace and new lines to separate different sections of your response. This can make your responses easier to read and understand.
 
 **Answer:**
 - Utilize Markdown and use clear headings and lists.
 - Summarize key points using bullet points for clarity.
+- Separate the introduction, detailed analysis, and conclusion with blank lines for clarity.
 `;
 
 export default template;
