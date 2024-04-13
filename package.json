@@ -1,7 +1,10 @@
-{
+{ "name": "camelotai",
+  "version": "1.0.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "build": "next build",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "dev": "node dev-start.mjs",
     "prettier": "prettier --write --ignore-unknown .",
     "prettier:check": "prettier --check --ignore-unknown .",
@@ -35,7 +38,6 @@
     "ai": "^3.0.18",
     "autoprefixer": "10.4.15",
     "axios": "^1.6.8",
-    "bcrypt": "^5.1.1",
     "clsx": "^2.0.0",
     "date-fns": "^3.6.0",
     "elevenlabs": "^0.2.2",
@@ -60,7 +62,6 @@
     "zod": "^3.22.2"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.1",
     "@types/node": "^20.12.2",
     "@types/react": "18.2.21",
     "@types/react-dom": "18.2.14",
