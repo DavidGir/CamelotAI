@@ -44,8 +44,7 @@ async function deleteFile(params: DeleteFileParams) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const id = request.nextUrl.searchParams.get('id');
-  const fileUrl = request.nextUrl.searchParams.get('fileUrl');
+  const { id, fileUrl } = await request.json();
   const { userId } = auth();
 
   console.log('Commencing Deletion of document:', id, fileUrl)
