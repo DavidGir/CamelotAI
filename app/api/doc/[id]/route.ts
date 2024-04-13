@@ -54,6 +54,10 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'You must be logged in to delete data' });
   }
 
+  if (!id || !fileUrl) {
+    return NextResponse.json({ error: 'id or fileUrl is missing in the request' }, { status: 400 });
+  }
+
   try {
     if (id && fileUrl) {
       // Extract the account id and the path from the fileUrl for Bytescale cloud storage deletion:
@@ -70,7 +74,7 @@ export async function DELETE(request: NextRequest) {
           filePath: path,
         },
       }).then(
-        () => console.log('Success.'),
+        () => console.log('Success deleting files.'),
         (error) => {
           console.error(error);
           return NextResponse.json({
