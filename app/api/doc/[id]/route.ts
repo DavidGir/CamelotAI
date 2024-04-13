@@ -57,35 +57,35 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'id or fileUrl is missing in the request' }, { status: 400 });
   }
 
-  try {
-    if (id && fileUrl) {
-      // Extract the account id and the path from the fileUrl for Bytescale cloud storage deletion:
-      const pathWithAccId = fileUrl.replace('https://upcdn.io/', '');
-      const accId = pathWithAccId.split('/')[0];
-      const path = pathWithAccId.replace(`${accId}/raw`, '');
-      // Delete the file from Bytescale:
-      await deleteFile({
-        accountId: accId,
-        apiKey: !!process.env.NEXT_SECRET_BYTESCALE_API_KEY
-          ? process.env.NEXT_SECRET_BYTESCALE_API_KEY
-          : 'No Bytescale api key found',
-        querystring: {
-          filePath: path,
-        },
-      }).then(
-        () => console.log('Success deleting ByteScale files.'),
-        (error: Error) => {
-          console.error(error);
-          return NextResponse.json({
-            error: 'Could not delete document from Bytescale cloud',
-          });
-        },
-      );
-    }
-  } catch (error) {
-    console.error('Error deleting document from Bytescale:', error);
-    return NextResponse.json({ error: 'Error deleting document from Bytescale' });
-  }
+  // try {
+  //   if (id && fileUrl) {
+  //     // Extract the account id and the path from the fileUrl for Bytescale cloud storage deletion:
+  //     const pathWithAccId = fileUrl.replace('https://upcdn.io/', '');
+  //     const accId = pathWithAccId.split('/')[0];
+  //     const path = pathWithAccId.replace(`${accId}/raw`, '');
+  //     // Delete the file from Bytescale:
+  //     await deleteFile({
+  //       accountId: accId,
+  //       apiKey: !!process.env.NEXT_SECRET_BYTESCALE_API_KEY
+  //         ? process.env.NEXT_SECRET_BYTESCALE_API_KEY
+  //         : 'No Bytescale api key found',
+  //       querystring: {
+  //         filePath: path,
+  //       },
+  //     }).then(
+  //       () => console.log('Success deleting ByteScale files.'),
+  //       (error: Error) => {
+  //         console.error(error);
+  //         return NextResponse.json({
+  //           error: 'Could not delete document from Bytescale cloud',
+  //         });
+  //       },
+  //     );
+  //   }
+  // } catch (error) {
+  //   console.error('Error deleting document from Bytescale:', error);
+  //   return NextResponse.json({ error: 'Error deleting document from Bytescale' });
+  // }
 
   try {
     // Delete the document from PostgreSQL using Prisma:
