@@ -57,7 +57,7 @@ export default function MessageRenderer({
   return (
     <div key={`chatMessage-${index}`} className="flex flex-col justify-between">
       <div
-        className={`animate p-4 text-black ${
+        className={`p-4 text-black ${
           message.role === 'assistant'
             ? 'bg-gray-100'
             : isLoading && index === Number(sourcesForMessages.length) - 1
@@ -65,7 +65,6 @@ export default function MessageRenderer({
               : 'bg-white'
         }`}
       >
-        {/* Check the role of the message and adjust the layout accordingly */}
         {message.role === 'assistant' ? (
           // For the assistant's messages, show the chatbot icon on the left
           <div className="flex items-start">
