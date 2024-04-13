@@ -142,7 +142,9 @@ export default function Dashboard({
           fileUrl,
         }),
       });
-      const data = await res.json();
+      if (!res.ok) {
+        throw new Error('Failed to delete the document');
+      }
       notifyUser('Document successfully deleted!', {
         type: 'success',
       });
