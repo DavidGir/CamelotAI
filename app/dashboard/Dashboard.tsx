@@ -101,7 +101,6 @@ export default function Dashboard({
           });
         })))
       .then(() => {
-        setLoading(false);
         router.refresh();
       });
   };
@@ -115,7 +114,6 @@ export default function Dashboard({
         fileName,
       });
       if (response.data.id) {
-        setLoading(false);
         router.push(`/document/${response.data.id}`);
       } else {
         throw new Error('No document ID returned after ingestion');
@@ -125,7 +123,6 @@ export default function Dashboard({
       notifyUser('Failed to ingest the PDF!', {
         type: 'error',
       });
-      setLoading(false);
     }
   };
 

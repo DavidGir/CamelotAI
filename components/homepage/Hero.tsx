@@ -1,8 +1,11 @@
 'use client'
 
 import Link from 'next/link';
-import Instructions from './Instructions';
+import dynamic from 'next/dynamic';
 import AnimatedSearchBarIntro from '../ui/AnimatedSearchBarIntro';
+
+// Client component that is loaded dynamically to ensure they are only rendered client-side:
+const Instructions = dynamic(() => import('./Instructions'), { ssr: false });
 
 const Hero = () => {
  

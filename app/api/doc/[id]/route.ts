@@ -1,5 +1,5 @@
 import prisma from '../../../utils/prisma';
-import { NextResponse,NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { Pinecone } from '@pinecone-database/pinecone';
 
@@ -44,7 +44,6 @@ async function deleteFile(params: DeleteFileParams) {
 }
 
 export async function DELETE(request: NextRequest) {
-  
   const id = request.nextUrl.searchParams.get('id');
   const fileUrl = request.nextUrl.searchParams.get('fileUrl');
   const { userId } = auth();
@@ -52,6 +51,10 @@ export async function DELETE(request: NextRequest) {
   // Check if the user is authenticated
   if (!userId) {
     return NextResponse.json({ error: 'You must be logged in to delete data' });
+  }
+
+  if (!id || !fileUrl) {
+    return NextResponse.json({ error: 'id or fileUrl is missing in the request' }, { status: 400 });
   }
 
   try {
@@ -63,40 +66,65 @@ export async function DELETE(request: NextRequest) {
       // Delete the file from Bytescale:
       await deleteFile({
         accountId: accId,
-        apiKey: !!process.env.NEXT_SECRET_BYTESCALE_API_KEY 
+        apiKey: !!process.env.NEXT_SECRET_BYTESCALE_API_KEY
           ? process.env.NEXT_SECRET_BYTESCALE_API_KEY
           : 'No Bytescale api key found',
         querystring: {
           filePath: path,
         },
       }).then(
-        () => console.log('Success.'),
-        (error) => {
+        () => console.log('Success deleting ByteScale files.'),
+        (error: Error) => {
           console.error(error);
           return NextResponse.json({
             error: 'Could not delete document from Bytescale cloud',
           });
         },
       );
-
-      // Delete the document from PostgreSQL using Prisma:
-      await prisma.document.delete({
-        where: {
-          id: id,
-          userId: userId,
-        },
-      });
-
-      // Delete the document vectors from Pinecone namespace:
-      const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY ?? '' })
-      const index = pinecone.index(process.env.PINECONE_INDEX_NAME ?? '')
-      // Delete all vectors from the specific namespace which is the same as document id:
-      await index.namespace(id).deleteAll();
-
-    return NextResponse.json({message: `Document and vectors for ${id} deleted`}, {status:200});
     }
   } catch (error) {
-    return NextResponse.json({error: 'Error deleting document and vectors'}, {status:500});
+    console.error('Error deleting document from Bytescale:', error);
+    return NextResponse.json({ error: 'Error deleting document from Bytescale' });
   }
 
-};
+  try {
+    // Delete the document from PostgreSQL using Prisma:
+    await prisma.document.delete({
+      where: {
+        id: id,
+        userId: userId,
+      },
+    }).then(
+      () => console.log('Success deleting document from PostgreSQL.'),
+      (error: Error) => {
+        console.error(error);
+        return NextResponse.json({
+          error: 'Could not delete document from PostgreSQL',
+        });
+      },
+    );
+  } catch (error) {
+    console.error('Error deleting document from PostgreSQL:', error);
+    return NextResponse.json({ error: 'Error deleting document from PostgreSQL' });
+  }
+
+  try {
+    // Delete the document vectors from Pinecone namespace:
+    const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY ?? '' });
+    const index = pinecone.index(process.env.PINECONE_INDEX_NAME ?? '');
+    // Delete all vectors from the specific namespace which is the same as document id:
+    await index.namespace(id).deleteAll()
+      .then(
+        () => console.log('Success deleting document vectors in Pinecone.'),
+        (error: Error) => {
+          console.error(error);
+          return NextResponse.json({
+            error: 'Could not delete document vectors from Pinecone',
+          });
+        },
+      );
+    return NextResponse.json({ message: `Document and vectors for ${id} deleted` }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: 'Error deleting document and vectors' }, { status: 500 });
+  }
+}
