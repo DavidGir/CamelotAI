@@ -49,7 +49,6 @@ export async function DELETE(request: NextRequest) {
   const { id, fileUrl } = await request.json();
   const { userId } = auth();
 
-  console.log('Commencing Deletion of document:', id, fileUrl)
   // Check if the user is authenticated
   if (!userId) {
     return NextResponse.json({ error: 'You must be logged in to delete data' });
