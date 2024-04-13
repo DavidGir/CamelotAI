@@ -1,5 +1,5 @@
 import prisma from '../../../utils/prisma';
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { Pinecone } from '@pinecone-database/pinecone';
 
@@ -46,10 +46,10 @@ async function deleteFile(params: DeleteFileParams) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const id = request.nextUrl.searchParams.get('id');
-  const fileUrl = request.nextUrl.searchParams.get('fileUrl');
+  const { id, fileUrl } = await request.json();
   const { userId } = auth();
 
+  console.log('Commencing Deletion of document:', id, fileUrl)
   // Check if the user is authenticated
   if (!userId) {
     return NextResponse.json({ error: 'You must be logged in to delete data' });

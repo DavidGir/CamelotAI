@@ -132,12 +132,19 @@ export default function Dashboard({
     // Set the loading status for the specific document:
     setDeletionStatus(prevStatus => ({ ...prevStatus, [id]: true }));
     try {
-      await axios.delete(`/api/doc/${id}`, {
-        params: {
-          id: id,
-          fileUrl: fileUrl,
+      const res = await fetch(`/api/doc/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      })
+        body: JSON.stringify({
+          id,
+          fileUrl,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to delete the document');
+      }
       notifyUser('Document successfully deleted!', {
         type: 'success',
       });
