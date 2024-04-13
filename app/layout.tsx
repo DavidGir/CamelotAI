@@ -8,6 +8,7 @@ import "../styles/global.css";
 import dynamic from "next/dynamic";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
+import { Metadata } from 'next';
 
 // Using dynamic import as the loading animation will only be loaded and rendered client-side
 // which is useful as it contains client-specific code (like direct DOM manipulations or document objects which are not available on the server).
@@ -21,6 +22,28 @@ const lancelot = Lancelot({
   subsets: ["latin"],
   display: "swap",
 });
+
+let title = 'CamelotAI';
+let description = 'CamelotAI is a platform that helps you chat with your docs!';
+let url = 'https://camelotai.vercel.app/';
+let sitename = 'CamelotAI.com';
+
+export const metadata: Metadata = {
+  metadataBase: new URL(url),
+  title,
+  description,
+  icons: {
+    icon: '/favicon.ico',
+  },
+  openGraph: {
+    title,
+    description,
+    url: url,
+    siteName: sitename,
+    locale: 'en_US',
+    type: 'website',
+  },
+};
 
 export default function RootLayout({
   children,
