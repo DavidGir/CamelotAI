@@ -19,6 +19,7 @@ export default async function Page({ params }: { params: { id: string } }) {
       createdAt: 'asc',
     },
     take: 4,
+    cacheStrategy: { swr: 60, ttl: 60 },
   });
 
   if (!documents || documents.length === 0) {
