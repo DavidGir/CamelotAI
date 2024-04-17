@@ -3,8 +3,6 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { Pinecone } from '@pinecone-database/pinecone';
 
-export const runtime = 'nodejs';
-
 // Interface aligning with the Bytescale API documentation:
 interface DeleteFileParams {
   accountId: string;
