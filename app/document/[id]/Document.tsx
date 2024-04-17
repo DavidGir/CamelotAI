@@ -3,7 +3,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { Document } from '@prisma/client';
 import { useChat } from 'ai/react';
-import LoadingDots from '@/components/ui/LoadingDots';
 import DocumentTabs from '@/components/ui/DocumentTabs';
 import { Voice as VoiceResponse } from 'elevenlabs/api';
 import useLocalStorage from '@/app/hooks/useLocalStorage';
@@ -11,54 +10,84 @@ import useTextToSpeech from '@/app/hooks/useTextToSpeech';
 import getVoices from '@/app/utils/getVoices';
 import ChatVoice from '@/components/ui/ChatVoice';
 import ChatDisplay from '@/components/ui/ChatDisplay';
+import ChatForm from '@/components/ui/ChatForm';
+import useChatInteraction from '@/app/hooks/useChatInteraction';
+import notifyUser from '@/app/utils/notifyUser';
 
 export default function DocumentClient({
   docsList,
   userImage,
-  selectedDocId
+  selectedDocId,
 }: {
   docsList: Document[];
   userImage?: string;
   selectedDocId: string;
 }) {
   const [sourcesForMessages, setSourcesForMessages] = useState<
-  Record<string, any>
-  >({});  
+    Record<string, any>
+  >({});
   const [error, setError] = useState('');
-  const [navigateToPage, setNavigateToPage] = useState<{ docIndex: number, pageNumber: number } | null>(null);
-  const [selectedDocIndex, setSelectedDocIndex] = useState(0);
+  const [navigateToPage, setNavigateToPage] = useState<{
+    docIndex: number;
+    pageNumber: number;
+  } | null>(null);
+  const [selectedDocIndex, setSelectedDocIndex] = useLocalStorage<number>(
+    'selectedDocIndex',
+    0,
+  );
   // Store the list of voices from ElevenLabs
   const [voices, setVoices] = useState<VoiceResponse[]>([]);
   // Store the name of the selected voice
-  const [selectedVoice, setSelectedVoice] = useLocalStorage<string>('selectedVoice', 'Camelot');
+  const [selectedVoice, setSelectedVoice] = useLocalStorage<string>(
+    'selectedVoice',
+    'Camelot',
+  );
+  // State to check if the chat has any messages
+  const [hasChats, setHasChats] = useState(false);
+  const [hasUnsavedMessages, setHasUnsavedMessages] = useState(false);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages, setInput } =
-    useChat({
-      api: '/api/chat',
-      body: {
-        chatId: docsList[selectedDocIndex]?.id,
-      },
-      onResponse(response) {
-        const sourcesHeader = response.headers.get('x-sources');
-        const sources = sourcesHeader ? JSON.parse(atob(sourcesHeader)) : [];
-        const messageIndexHeader = response.headers.get('x-message-index');
-        if (sources.length && messageIndexHeader !== null) {
-          setSourcesForMessages({
-            ...sourcesForMessages,
-            [messageIndexHeader]: sources,
-          });
-        }
-      },
-      onError: (e) => {
-        setError(e.message);
-      },
-      onFinish() {},
-    });
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit: originalHandleSubmit,
+    isLoading,
+    setMessages,
+    setInput,
+  } = useChat({
+    api: '/api/chat',
+    body: {
+      chatId: docsList[selectedDocIndex]?.id,
+    },
+    onResponse(response) {
+      const sourcesHeader = response.headers.get('x-sources');
+      const sources = sourcesHeader ? JSON.parse(atob(sourcesHeader)) : [];
+      const messageIndexHeader = response.headers.get('x-message-index');
+      if (sources.length && messageIndexHeader !== null) {
+        setSourcesForMessages({
+          ...sourcesForMessages,
+          [messageIndexHeader]: sources,
+        });
+      }
+    },
+    onError: (e) => {
+      setError(e.message);
+    },
+    onFinish() {},
+  });
 
-  const { audioLoading, requestTextToSpeech, audioRef } = useTextToSpeech({ selectedVoice });
+  const { audioLoading, requestTextToSpeech, audioRef } = useTextToSpeech({
+    selectedVoice,
+  });
 
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Wrap the original handleSubmit to include setting hasUnsavedMessages
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    originalHandleSubmit(e);
+    setHasUnsavedMessages(true);
+  };
 
   useEffect(() => {
     // Fetch the voices from the getVoices() utility and store them.
@@ -67,53 +96,40 @@ export default function DocumentClient({
         setVoices(voices ?? []);
       })
       .catch((error) => {
-        console.error("Error fetching voices:", error);
+        console.error('Error fetching voices:', error);
       });
   }, []);
 
   // Sample questions to guide the user.
-  const sampleQuestions = ["What is the main topic?", "Summarize the document.", "Explain key points."];
+  const sampleQuestions = [
+    'What is the main topic?',
+    'Summarize the document.',
+    'Explain key points.',
+  ];
+  // Handle sample question clicks, predefined user interactions
+  const { handleSampleQuestionClick } = useChatInteraction(
+    input,
+    setInput,
+    textAreaRef,
+  );
 
-  // Function to programmatically submit a question to the chat
-  const handleSampleQuestionClick = (question: string) => {
-    // Update the input (question asked) state and ensure the UI updates
-    setInput(question);
-
-    // Wait for the next event loop tick to ensure state and UI updates have occurred
-    setTimeout(() => {
-      // Create and dispatch a synthetic 'Enter' key press event to submit the form
-      const enterKeyPressEvent = new KeyboardEvent('keydown', {
-        key: 'Enter',
-        code: 'Enter',
-        bubbles: true,
-      });
-
-      // Dispatch it to the textarea input
-      textAreaRef.current?.dispatchEvent(enterKeyPressEvent);
-    }, 0);
-  };
-
+  // Effect to update selectedDocIndex when selectedDocId changes
   useEffect(() => {
-    const newSelectedIndex = docsList.findIndex(doc => doc.id === selectedDocId);
-    if (newSelectedIndex !== -1) {
-      setSelectedDocIndex(newSelectedIndex);
+    const index = docsList.findIndex((doc) => doc.id === selectedDocId);
+    if (index !== -1) {
+      setSelectedDocIndex(index);
     }
   }, [selectedDocId, docsList]);
 
-  // Trigger chat session update on document tab switch
+  // Effect to update localStorage when selectedDocIndex changes
   useEffect(() => {
-    handleInputChange({ target: { value: input } } as React.ChangeEvent<HTMLTextAreaElement>);
-  }, [selectedDocIndex, handleInputChange, input]);
+    localStorage.setItem('selectedDocIndex', selectedDocIndex.toString());
+  }, [selectedDocIndex]);
 
-  // Clear chat and reset input when switching documents
-  useEffect(() => {
-    setMessages([]);
-    setInput('');
-  }, [selectedDocIndex, setMessages, setInput]);
-
-  useEffect(() => {
-    textAreaRef.current?.focus();
-  }, []);
+  // Function to handle tab selection
+  const handleTabSelect = (index: number) => {
+    setSelectedDocIndex(index);
+  };
 
   // Prevent empty chat submissions
   const handleEnter = (e: any) => {
@@ -124,6 +140,78 @@ export default function DocumentClient({
     }
   };
 
+  // Function to handle saving chat
+  const handleSaveChat = async () => {
+    if (!hasUnsavedMessages) {
+      notifyUser('No new messages to save.', { type: 'info' });
+      return;
+    }
+
+    const messagesToSave = messages;
+    try {
+      const response = await fetch('/api/saveChatSession', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: messagesToSave,
+          documentId: docsList[selectedDocIndex]?.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save chat');
+      }
+
+      const savedChat = await response.json();
+      notifyUser('Chat saved successfully.', { type: 'success' });
+      setHasUnsavedMessages(false);
+      // Fetch the updated chat history after saving to synchronize with local storage
+      fetchChatHistory(docsList[selectedDocIndex]?.id);
+    } catch (error: any) {
+      console.error('Failed to save chat:', error);
+      setError(error.message);
+    }
+  };
+
+  // Function to fetch chat history
+  const fetchChatHistory = async (documentId: string) => {
+    try {
+      const response = await fetch(
+        `/api/getChatHistory?documentId=${documentId}`,
+      );
+      if (!response.ok) {
+        throw new Error('Failed to load chat history');
+      }
+      const data = await response.json();
+      setMessages(data.messages);
+      setHasChats(data.messages.length > 0);
+      // Store fetched messages in localStorage
+      localStorage.setItem(
+        `messages_${documentId}`,
+        JSON.stringify(data.messages),
+      );
+    } catch (error) {
+      console.error('Error fetching chat history:', error);
+      setMessages([]); 
+      setHasChats(false); 
+    }
+  };
+
+  // Effect to fetch chat history from localStorage or API endpoint
+  useEffect(() => {
+    const storedMessages = localStorage.getItem(
+      `messages_${docsList[selectedDocIndex]?.id}`,
+    );
+    if (storedMessages) {
+      setMessages(JSON.parse(storedMessages));
+      setHasChats(true);
+    } else {
+      fetchChatHistory(docsList[selectedDocIndex]?.id);
+    }
+  }, [selectedDocIndex, docsList]);
+
   let userProfilePic = userImage || '/profile-icon.png';
 
   const extractSourcePageNumber = (source: {
@@ -132,15 +220,50 @@ export default function DocumentClient({
     return source.metadata['loc.pageNumber'] ?? source.metadata.loc?.pageNumber;
   };
 
+  // Function to delete chat and clear local state
+  const handleDeleteChat = async () => {
+    try {
+      const response = await fetch(`/api/deleteChat`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          documentId: docsList[selectedDocIndex]?.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete chat');
+      }
+
+      // Clear local state and localStorage after successful deletion
+      setMessages([]);
+      setHasChats(false);
+      setHasUnsavedMessages(false);
+      localStorage.removeItem(`messages_${docsList[selectedDocIndex]?.id}`);
+      notifyUser('Chat deleted successfully.', { type: 'success' });
+    } catch (error: any) {
+      console.error('Failed to delete chat:', error);
+      setError(error.message);
+      notifyUser(error.message, { type: 'error' });
+    }
+  };
+
   return (
-    <div className="mx-auto flex flex-col no-scrollbar -mt-2">
-      <div className="flex justify-between w-full lg:flex-row flex-col sm:space-y-20 lg:space-y-0 p-2">
+    <div className="no-scrollbar mx-auto -mt-2 flex flex-col">
+      <div className="flex w-full flex-col justify-between p-2 sm:space-y-20 lg:flex-row lg:space-y-0">
         {/* Left hand side */}
-          <DocumentTabs docsList={docsList} navigateToPage={navigateToPage} onTabSelect={setSelectedDocIndex} selectedTab={selectedDocIndex}/>
+        <DocumentTabs
+          docsList={docsList}
+          navigateToPage={navigateToPage}
+          onTabSelect={handleTabSelect}
+          selectedTab={selectedDocIndex}
+        />
         {/* Right hand side */}
-        <div className="flex flex-col w-full justify-between align-center h-[90vh] no-scrollbar">
+        <div className="align-center no-scrollbar flex h-[90vh] w-full flex-col justify-between">
           <ChatVoice {...{ voices, selectedVoice, setSelectedVoice }} />
-          <ChatDisplay 
+          <ChatDisplay
             messages={messages}
             audioLoading={audioLoading}
             requestTextToSpeech={requestTextToSpeech}
@@ -154,58 +277,33 @@ export default function DocumentClient({
             isLoading={isLoading}
             setNavigateToPage={setNavigateToPage}
             selectedDocIndex={selectedDocIndex}
+            error={error}
           />
-  
-          <div className="flex justify-center items-center sm:h-[15vh] h-[20vh]">
-            <form
-              id="chatForm"
-              onSubmit={(e) => handleSubmit(e)}
-              className="relative w-full px-4 sm:pt-10 pt-2"
-            >
-              <textarea
-                className="resize-none p-3 pr-10 rounded-md border border-gray-300 bg-white text-black focus:outline-gray-400 w-full"
-                disabled={isLoading}
-                value={input}
-                onChange={handleInputChange}
-                onKeyDown={handleEnter}
-                ref={textAreaRef}
-                rows={3}
-                autoFocus={false}
-                maxLength={512}
-                id="userInput"
-                name="userInput"
-                placeholder={
-                  isLoading ? 'Waiting for response...' : 'Ask your question...'
-                }
-              />
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="absolute top-[40px] sm:top-[71px] right-6 text-gray-600 bg-transparent py-1 px-2 border-none flex transition duration-300 ease-in-out rounded-sm"
-              >
-                {isLoading ? (
-                  <div className="">
-                    <LoadingDots color="#000" style="small" />
-                  </div>
-                ) : (
-                  <svg
-                    viewBox="0 0 20 20"
-                    className="transform rotate-90 w-6 h-6 fill-current"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-                  </svg>
-                )}
-              </button>
-            </form>
+          <div className="flex h-[20vh] items-center justify-center sm:h-[15vh]">
+            <ChatForm
+              isLoading={isLoading}
+              input={input}
+              handleInputChange={handleInputChange}
+              handleSubmit={handleSubmit}
+              handleEnter={handleEnter}
+              handleSaveChat={handleSaveChat}
+              handleDeleteChat={handleDeleteChat}
+              hasChats={hasChats}
+              textAreaRef={textAreaRef}
+              hasUnsavedMessages={hasUnsavedMessages}
+            />
           </div>
           {error && (
-            <div className="border border-red-400 rounded-md p-4">
+            <div className="rounded-md border border-red-400 p-4">
               <p className="text-red-500">{error}</p>
             </div>
           )}
-          <div className="flex justify-center items-center p-4">
-            <p> CamelotAi can make mistakes. Consider checking and verifying documents. </p>
+          <div className="flex items-center justify-center p-10">
+            <p>
+              {' '}
+              CamelotAi can make mistakes. Consider checking and verifying
+              documents.{' '}
+            </p>
           </div>
         </div>
       </div>
