@@ -16,7 +16,8 @@ export default function ChatDisplay({
   sampleQuestions,
   isLoading,
   setNavigateToPage,
-  selectedDocIndex
+  selectedDocIndex,
+  error
 }: ChatDisplayProps) {
   return (
     <div className="no-scrollbar flex h-[80vh] min-h-min w-full items-center justify-center border bg-white sm:h-[85vh]">
@@ -24,6 +25,11 @@ export default function ChatDisplay({
         ref={messageListRef}
         className="no-scrollbar mt-4 h-full w-full overflow-y-scroll rounded-md"
       >
+        {error && (
+          <div className="p-4 text-center text-red-600">
+            {error}
+          </div>
+        )}
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-xl">
             <div className="flex flex-col items-center p-4">
