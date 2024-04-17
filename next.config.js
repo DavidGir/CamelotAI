@@ -13,7 +13,6 @@ const nextConfig = {
   },
   experimental: {
     esmExternals: 'loose',
-    runtime: 'nodejs' | 'edge'
   },
   webpack: (config) => {
     config.externals = [...config.externals, { canvas: 'canvas' }];
