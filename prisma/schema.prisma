@@ -11,9 +11,30 @@ datasource db {
 }
 
 model Document {
-    id        String   @id @default(cuid())
-    userId    String
-    fileUrl   String
-    fileName  String
-    createdAt DateTime @default(now()) @map(name: "created_at")
+  id        String   @id @default(cuid())
+  userId    String
+  fileUrl   String
+  fileName  String
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  chats     Chat[]   @relation("DocumentToChat")
+}
+
+model Chat {
+  id          String   @id @default(cuid())
+  userId      String
+  documentId  String   @map(name: "document_id")
+  document    Document @relation("DocumentToChat", fields: [documentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map(name: "created_at")
+  updatedAt   DateTime @updatedAt @map(name: "updated_at")
+  isSaved     Boolean  @default(false) // Default to false when the chat is initially created
+  messages    Message[] @relation("ChatToMessage")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  chatId    String   @map(name: "chat_id")
+  content   String
+  role      String   // "user" or "assistant"
+  isSaved   Boolean  @default(false) // Default to false when the message is initially created
+  chat      Chat     @relation("ChatToMessage", fields: [chatId], references: [id], onDelete: Cascade)
 }
