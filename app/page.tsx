@@ -1,4 +1,3 @@
-import Header from '../components/homepage/Header';
 import Hero from '../components/homepage/Hero';
 import { currentUser } from '@clerk/nextjs';
 import { User } from '@clerk/nextjs/server';
@@ -16,7 +15,6 @@ export default async function Home() {
   return (
     <>
     <main className="z-20 w-full h-full bg-gray-200">
-      {/* <Header />  */}
       <Hero />
     </main>
     <Footer />
