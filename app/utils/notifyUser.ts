@@ -7,9 +7,9 @@ export default function notifyUser(
 ) {
   toast(message, {
     position: "bottom-right",
-    autoClose: 5000,
+    autoClose: 3000,
     theme: "dark",
-    hideProgressBar: false,
+    hideProgressBar: true,
     closeOnClick: true,
     rtl: false,
     pauseOnFocusLoss: true,
