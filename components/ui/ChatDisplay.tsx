@@ -20,7 +20,7 @@ export default function ChatDisplay({
   error
 }: ChatDisplayProps) {
   return (
-    <div className="no-scrollbar flex h-[80vh] min-h-min w-full items-center justify-center border bg-white sm:h-[85vh]">
+    <div className="no-scrollbar flex h-[80vh] min-h-min w-full items-center justify-center border sm:h-[85vh]">
       <div
         ref={messageListRef}
         className="no-scrollbar mt-4 h-full w-full overflow-y-scroll rounded-md"
@@ -35,7 +35,7 @@ export default function ChatDisplay({
             <div className="flex flex-col items-center p-4">
               {/* Chatbot avatar and greeting */}
               <Image
-                src="/logo.png"
+                src="/camelot-mono-no-bg.png"
                 alt="Chatbot Avatar"
                 width={50}
                 height={50}
@@ -50,7 +50,7 @@ export default function ChatDisplay({
                 <button
                   key={index}
                   onClick={() => handleSampleQuestionClick(question)}
-                  className="cursor-pointer rounded-full bg-black px-4 py-2 font-bold text-white hover:bg-gray-700"
+                  className="cursor-pointer rounded-full bg-black px-4 py-2 text-white hover:bg-gray-700"
                 >
                   {question}
                 </button>
