@@ -48,7 +48,7 @@ export default function Dashboard({
         error: "#d23f4d",     // Error messages
         shade600: "#000000",  // Border
         shade500: "#000000",  // Modal close button
-        shade900: "#F3DFC1"   // Various (draggable crop buttons, etc.)
+        shade900: "rgb(229, 231, 235)"   // Various (draggable crop buttons, etc.)
       },
       breakpoints: {
         fullScreenHeight: 420,
