@@ -73,7 +73,7 @@ export default function MessageRenderer({
               style={{ flexShrink: 0 }}
             >
               <Image
-                src="/logo.png"
+                src="/camelot-mono-no-bg.png"
                 alt="assistant image"
                 width="35"
                 height="30"
