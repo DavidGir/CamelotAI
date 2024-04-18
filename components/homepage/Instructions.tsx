@@ -31,9 +31,9 @@ const Instructions = () => {
   return (
     <div 
       id="how-it-works" 
-      className="container flex justify-center "
+      className="container flex justify-center"
     >
-      <button onClick={openModal} className="flex bg_linear rounded-full sm:px-14 px-12 py-[2.5px] sm:py-4 text-white text-center text-xl sm:text-[30px] font-medium leading-[37px] tracking-[-0.3px]">
+      <button onClick={openModal} className="flex bg_linear rounded-full sm:px-5 px-12 py-[2.5px] sm:py-2 text-white text-center text-lg sm:text-[15px] font-small leading-[37px] tracking-[-0.3px]">
         How Does It Work?
       </button>
 

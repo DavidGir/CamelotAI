@@ -3,7 +3,7 @@ import { ClerkProvider, ClerkLoading, ClerkLoaded } from "@clerk/nextjs";
 // Add web analytics to app from Vercel Analytics:
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import { Lancelot } from "next/font/google";
+import { Roboto } from "next/font/google";
 import "../styles/global.css";
 import dynamic from "next/dynamic";
 import { ToastContainer } from "react-toastify";
@@ -17,8 +17,8 @@ const LoadingAnimation = dynamic(
   { ssr: false }
 );
 
-const lancelot = Lancelot({ 
-  weight: "400",
+const roboto = Roboto({ 
+  weight: "300",
   subsets: ["latin"],
   display: "swap",
 });
@@ -55,12 +55,12 @@ export default function RootLayout({
       appearance={{
         variables: {
           colorPrimary: "black",
-          colorBackground: "#F3DFC1",
+          colorBackground: "rgb(229, 231, 235)",
           borderRadius: "10px",
         }
       }}
     >
-      <html lang='en' className={lancelot.className}>
+      <html lang='en' className={roboto.className}>
         <body>
           <Analytics />
           <SpeedInsights />

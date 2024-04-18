@@ -19,7 +19,7 @@ export default function HeaderDashboard() {
 
 
   return (
-    <header className="top-0 bg-ancient-beige w-full border-b border-b-slate-200 shadow-sm">
+    <header className="top-0 bg-gun-gray w-full border-b border-b-slate-200 shadow-sm">
       <div className="h-16 container mx-auto">
         <nav className="flex justify-between ">
             <Logo />

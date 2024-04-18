@@ -23,9 +23,9 @@ const Header = () => {
 
   return (
     <>
-      <div className="container mx-auto hidden h-[78px] w-full items-center justify-between rounded-[30px] border border-solid border-[rgba(0,0,0,0.17)] bg-ancient-beige px-5 shadow-[0px_1px_4px_0px_rgba(0,0,0,0.25)] sm:flex">
+      <div className="container mx-auto hidden h-[78px] w-full items-start justify-between rounded-[30px] border border-solid border-[rgba(0,0,0,0.17)] bg-gun-gray px-5 shadow-[0px_1px_4px_0px_rgba(0,0,0,0.25)] sm:flex">
         <Logo />
-        <div className="items-center gap-4 sm:flex">
+        <div className="mt-4 gap-4 sm:flex">
           <Link
             href="/dashboard"
             className="text-primary border-black rounded-[18px] border border-solid px-[22px] py-1.5 text-center text-xl font-normal "
@@ -34,7 +34,7 @@ const Header = () => {
           </Link>
           <Link
             href="/dashboard"
-            className="bg_linear border-primary rounded-[18px] border border-solid px-[22px] py-1.5  text-center text-xl font-normal text-white "
+            className="bg_linear border-primary rounded-[18px] border border-solid px-[22px] py-1.5 text-center text-xl font-normal text-white "
           >
             Sign up
           </Link>
@@ -42,7 +42,7 @@ const Header = () => {
       </div>
 
       {/* Mobile Menu Icon */}
-      <div className="flex h-[54px] items-center justify-between border-b-[0.5px] border-solid border-b-white bg-ancient-beige px-6 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] sm:hidden">
+      <div className="flex h-[54px] items-center justify-between border-b-[0.5px] border-solid border-b-white px-6 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] sm:hidden">
         <Logo isMobile={true} />
         <div className="flex items-baseline justify-center">
           <IconButton
@@ -70,13 +70,13 @@ const Header = () => {
           >
            <MenuItem 
               onClick={handleClose}
-              className="bg-ancient-beige"
+              className=""
             >
               <Link href="/dashboard" >Log In</Link>
             </MenuItem>
             <MenuItem 
               onClick={handleClose}
-              className="bg-ancient-beige "
+              className=""
             >
               <Link href="/settings">Sign Up</Link>
             </MenuItem>

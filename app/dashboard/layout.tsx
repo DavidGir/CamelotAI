@@ -7,7 +7,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col ancient-scroll-bg-2">
+    <div className="min-h-screen flex flex-col bg-gray-200">
       <Header />
       <div className="flex-grow">{children}</div>
       <div className="bottom-0 w-full">
