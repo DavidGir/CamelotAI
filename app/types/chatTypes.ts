@@ -3,6 +3,7 @@ export interface Message {
   content: string;
   role: 'assistant' | 'user' | 'function' | 'data' | 'system' | 'tool';
   createdAt?: Date | undefined;
+  isSaved?: boolean;
   isLoading?: boolean;
 }
 
@@ -25,4 +26,18 @@ export interface ChatDisplayProps {
   isLoading: boolean;
   setNavigateToPage: (navigationInfo: { docIndex: number, pageNumber: number }) => void;
   selectedDocIndex: number;
+  error: string | null;
+}
+
+export interface ChatFormProps {
+  isLoading: boolean;
+  input: string;
+  handleInputChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  handleEnter: (event: React.KeyboardEvent) => void;
+  handleSaveChat: () => void;
+  handleDeleteChat: () => void;
+  hasChats: boolean;
+  textAreaRef: React.RefObject<HTMLTextAreaElement>;
+  hasUnsavedMessages: boolean;
 }
