@@ -12,7 +12,7 @@ const config: Config = {
         '13': 'repeat(13, minmax(0, 1fr))',
       },
       colors: {
-        'ancient-beige': '#F3DFC1',
+        'gun-gray': '#818589',
       },
     },
     keyframes: {
