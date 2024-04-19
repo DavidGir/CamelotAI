@@ -16,7 +16,15 @@
 - **[ElevenLabs](https://elevenlabs.io/)**: Platform for Speech Synthesis (text-to-speech capabilities).
 - **[Pinecone](https://www.pinecone.io/)**: Vector database for managing high-dimensional data.
 - **[Bytescale](https://bytescale.com/)**: Storage solutions for PDFs and other document types.
+
+
+
+
 - **[Vercel](https://vercel.com/)**: Hosting and Postgres DB for scalable web applications.
 - **[Clerk](https://clerk.com/docs/quickstarts/nextjs)**: User authentication services.
 - **[Tailwind CSS](https://tailwindcss.com/)**: Utility-first CSS framework for rapid UI development.
 
+## How Does It Work
+
+### Video Walkthrough of Corporate Release - Multi-Tabs View 
+https://github.com/DavidGir/CamelotAI/assets/142949344/14c1c64d-373f-4253-85e3-e75cff5358c0
