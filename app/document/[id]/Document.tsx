@@ -208,6 +208,7 @@ export default function DocumentClient({
     const storedMessages = localStorage.getItem(
       `messages_${documentId}`,
     );
+    setMessages([]);
     if (storedMessages) {
       const messagesArray = JSON.parse(storedMessages);
       setMessages(messagesArray);
