@@ -76,7 +76,7 @@ export default function DocumentClient({
     onFinish() {},
   });
 
-  const { audioLoading, requestTextToSpeech, audioRef } = useTextToSpeech({
+  const { audioLoading, requestTextToSpeech, clearAllAudioUrls, audioRef } = useTextToSpeech({
     selectedVoice,
   });
 
@@ -254,6 +254,7 @@ export default function DocumentClient({
       localStorage.removeItem(`messages_${documentId}`);
       // Remove the flag indicating history exists
       localStorage.removeItem(`shouldFetch_${documentId}`);
+      clearAllAudioUrls();
       notifyUser('Chat deleted successfully.', { type: 'success' });
     } catch (error: any) {
       console.error('Failed to delete chat:', error);
