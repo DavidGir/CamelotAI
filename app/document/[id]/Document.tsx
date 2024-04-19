@@ -192,6 +192,8 @@ export default function DocumentClient({
         `messages_${documentId}`,
         JSON.stringify(data.messages),
       );
+      // Set a flag indicating history exists
+      localStorage.setItem(`shouldFetch_${documentId}`, 'true');
     } catch (error) {
       console.error('Error fetching chat history:', error);
       setMessages([]); 
@@ -201,14 +203,21 @@ export default function DocumentClient({
 
   // Effect to fetch chat history from localStorage or API endpoint
   useEffect(() => {
+    const documentId = docsList[selectedDocIndex]?.id;
+    if (!documentId) return;
     const storedMessages = localStorage.getItem(
-      `messages_${docsList[selectedDocIndex]?.id}`,
+      `messages_${documentId}`,
     );
     if (storedMessages) {
-      setMessages(JSON.parse(storedMessages));
-      setHasChats(true);
+      const messagesArray = JSON.parse(storedMessages);
+      setMessages(messagesArray);
+      setHasChats(messagesArray.length > 0);
     } else {
-      fetchChatHistory(docsList[selectedDocIndex]?.id);
+      // Check a flag to determine if we should fetch history
+      const shouldFetch = localStorage.getItem(`shouldFetch_${documentId}`);
+      if (shouldFetch === 'true') {
+        fetchChatHistory(documentId);
+      }
     }
   }, [selectedDocIndex, docsList]);
 
@@ -223,6 +232,7 @@ export default function DocumentClient({
   // Function to delete chat and clear local state
   const handleDeleteChat = async () => {
     try {
+      const documentId = docsList[selectedDocIndex]?.id;
       const response = await fetch(`/api/deleteChat`, {
         method: 'DELETE',
         headers: {
@@ -241,7 +251,9 @@ export default function DocumentClient({
       setMessages([]);
       setHasChats(false);
       setHasUnsavedMessages(false);
-      localStorage.removeItem(`messages_${docsList[selectedDocIndex]?.id}`);
+      localStorage.removeItem(`messages_${documentId}`);
+      // Remove the flag indicating history exists
+      localStorage.removeItem(`shouldFetch_${documentId}`);
       notifyUser('Chat deleted successfully.', { type: 'success' });
     } catch (error: any) {
       console.error('Failed to delete chat:', error);
