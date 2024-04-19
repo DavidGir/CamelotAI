@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   title,
   description,
   icons: {
-    icon: '/favicon.ico',
+    icon: '/camelot-mono-no-bg.png',
   },
   openGraph: {
     title,
