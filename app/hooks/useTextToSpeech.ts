@@ -9,6 +9,7 @@ interface TextToSpeechHook {
 interface TextToSpeechState {
   audioLoading: Record<number, boolean>;
   requestTextToSpeech: (text: string, index: number) => Promise<void>;
+  clearAllAudioUrls: () => void; 
   audioRef: React.RefObject<HTMLAudioElement>;
   error: string | null;
 }
@@ -25,6 +26,14 @@ export default function useTextToSpeech({ selectedVoice }: TextToSpeechHook): Te
   const [audioLoading, setAudioLoading] = useState<Record<number, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [savedAudioUrls, setSavedAudioUrls] = useLocalStorage<Record<string, string>>("audioUrls", {});
+
+  const clearAllAudioUrls = useCallback(() => {
+    // Clear all saved audio URLs from local storage
+    setSavedAudioUrls({}); 
+    if (audioRef.current) {
+      audioRef.current.src = "";
+    }
+  }, [setSavedAudioUrls]);
 
   const requestTextToSpeech = useCallback(async (text: string, index: number) => {
     // Use both text and voice as the key to allow different audio URLs per voice
@@ -77,5 +86,5 @@ export default function useTextToSpeech({ selectedVoice }: TextToSpeechHook): Te
     }
   }, [savedAudioUrls, setSavedAudioUrls, selectedVoice]);
 
-  return { requestTextToSpeech, audioLoading, audioRef, error };
+  return { clearAllAudioUrls, requestTextToSpeech, audioLoading, audioRef, error };
 };
