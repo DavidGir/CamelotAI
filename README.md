@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="[camelotai.vercel.app/](https://camelotai.vercel.app/)">
+  <a href="https://camelotai.vercel.app/">
     <img src="https://github.com/DavidGir/CamelotAI/assets/142949344/052bdf33-8d81-4e31-832e-00a8ed171116" alt="desktop-view" width="400" height="400" />
   </a>
 </p>
