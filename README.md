@@ -125,9 +125,15 @@ Clerk is an easy and straightforward way of setting authentication into your app
   
 ---
 
-### Setting the app for development locally:
+### Running locally:
 
 Simply just fork this repo and clone it. 
+
+Install dependencies:
+
+```bash
+npm i
+```
 
 To run development:
 
