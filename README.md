@@ -7,7 +7,7 @@
 <h1 align="center"><strong>CamelotAI</strong><br></h1>
 
 <p align="center">
-  A chatbot AI that you can discuss with on your documents.
+  Dive into Camelot AI and start interactive conversations with your documents! Hear responses come to life and uncover additional insights!
 </p>
 
 ---
