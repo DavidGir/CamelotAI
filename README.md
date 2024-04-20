@@ -1,11 +1,48 @@
-# CamelotAI
+<p align="center">
+  <a href="[camelotai.vercel.app/](https://camelotai.vercel.app/)">
+    <img src="https://github.com/DavidGir/CamelotAI/assets/142949344/052bdf33-8d81-4e31-832e-00a8ed171116" alt="desktop-view" width="400" height="400" />
+  </a>
+</p>
 
-## Contents
-1. [Tech Stack](#tech-stack)
-2. [How Does It Work](#how-does-it-work)
-3. [Deploy On Your End](#deploy-on-your-end)
-4. [Common Errors](#common-errors)
-5. [Future Implementations](#future-implementations)
+<h1 align="center"><strong>CamelotAI</strong><br></h1>
+
+<p align="center">
+  A chatbot AI that you can discuss with on your documents.
+</p>
+
+---
+
+<p align="center">
+  <img src="https://github.com/DavidGir/CamelotAI/assets/142949344/2bdd50c3-bde6-403f-a910-148c5de3a7e3" alt="camelot-mono-no-bg" width="25" height="25" style="vertical-align: middle;"/>
+  &nbsp;
+  &nbsp;
+  &nbsp; 
+  &nbsp;
+  &nbsp;
+  &nbsp;
+  &nbsp; 
+  &nbsp;
+  &nbsp;
+  &nbsp;
+  <a href="#tech-stack">Tech Stack</a> ·
+  <a href="#how-does-it-work">How Does It Work</a> ·
+  <a href="#deploy-on-your-end">Deploy On Your End</a> ·
+  <a href="#common-errors">Common Errors</a> ·
+  <a href="#future-implementations">Future Implementations</a>
+  &nbsp;
+  &nbsp;
+  &nbsp; 
+  &nbsp;
+  &nbsp;
+  &nbsp; 
+  &nbsp; 
+  &nbsp;
+  &nbsp;
+  &nbsp;
+  <img src="https://github.com/DavidGir/CamelotAI/assets/142949344/2bdd50c3-bde6-403f-a910-148c5de3a7e3" alt="camelot-mono-no-bg" width="25" height="25" style="vertical-align: middle;"/>
+</p>
+
+---
 
 ## Tech Stack
 
