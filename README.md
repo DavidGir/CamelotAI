@@ -17,10 +17,6 @@
   &nbsp;
   &nbsp;
   &nbsp; 
-  &nbsp;
-  &nbsp;
-  &nbsp;
-  &nbsp; 
   <a href="#tech-stack">Tech Stack</a> ·
   <a href="#how-does-it-work">How Does It Work</a> ·
   <a href="#deploy-on-your-end">Deploy On Your End</a> ·
@@ -28,10 +24,6 @@
   <a href="#future-implementations">Future Implementations</a>
   &nbsp;
   &nbsp;
-  &nbsp; 
-  &nbsp;
-  &nbsp;
-  &nbsp; 
   &nbsp; 
   <img src="https://github.com/DavidGir/CamelotAI/assets/142949344/2bdd50c3-bde6-403f-a910-148c5de3a7e3" alt="camelot-mono-no-bg" width="25" height="25" style="vertical-align: middle;"/>
 </p>
