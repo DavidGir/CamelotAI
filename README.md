@@ -25,6 +25,8 @@
 ### Video Walkthrough of Corporate Release - Multi-Tabs View 
 https://github.com/DavidGir/CamelotAI/assets/142949344/14c1c64d-373f-4253-85e3-e75cff5358c0
 
+---
+
 ## Deploy On Your End
 
 You can use my template to deploy on Vercel or a hosting service of your choice. However, bare in mind that you will need to establish all the required environment variables. I made a .env.example file for you to refer to. You will find all the necessary env variables you'll need. 
@@ -39,6 +41,8 @@ Hugging Face is a machine learning (ML) and data science platform and community 
 <img width="1004" alt="Screenshot 2024-04-20 at 10 54 48 AM" src="https://github.com/DavidGir/CamelotAI/assets/142949344/650a2f87-fcef-47d3-98a7-9a6f1386aa7a">
 
  - Place your API key as ```HUGGINGFACEHUB_API_KEY= ``` in your .env file.
+
+---
 
 ### Set up [Pinecone](https://www.pinecone.io/):
 
@@ -55,6 +59,8 @@ Pinecone is just great. It is a vector-based database that offers high-performan
 
 <img width="1416" alt="Screenshot 2024-04-20 at 11 17 03 AM" src="https://github.com/DavidGir/CamelotAI/assets/142949344/b1aca5ad-0dfa-41bc-b44e-e38004fb7903">
 
+---
+
 ### Set up [Bytescale](https://bytescale.com/):
 
 Bytescale has a straight forward uloader widget that simplifies file uploading, file processing, content optimization, and content delivery. They have a folder/file storage structure that is used for storing the documents you upload in the widget's drop zone. 
@@ -64,6 +70,8 @@ Bytescale has a straight forward uloader widget that simplifies file uploading, 
 - Place your API public key as ```NEXT_PUBLIC_BYTESCALE_API_KEY=``` and the secret as ```NEXT_SECRET_BYTESCALE_API_KEY=```.
 - Your secret key is required for you to be able to delete documents from the Bytescale storage.
 
+---
+
 ### Set up [Vercel](https://vercel.com/):
 
 Vercel offers a fast and easy way to deploy web projects, with automatic scaling and support for modern web technologies like serverless functions. It's super compatible with a Next.js project and makes hosting relatively easy. You will have production and development deployments as well as previews. Production deployments stems from pushed commits made to your ```main``` branch and development deployments from your ```development``` branch. 
@@ -72,7 +80,9 @@ Vercel offers a fast and easy way to deploy web projects, with automatic scaling
 - In our case, we will be hosting a PostgreSQL database through Vercel and using prisma as an ORM.
 - There is a ```storage``` selection option where you can create a new db; select Postgres - serverless psql and name it.
 - From there you will see a ```Quickstart``` menu where you can get all the env variables you need for hosting your psql db which will be used in your .env file.
-- Follow and refer yourself to the env variables placeholders in the .env.example file in the root directory of the app. 
+- Follow and refer yourself to the env variables placeholders in the .env.example file in the root directory of the app.
+
+---
 
 ### Set up [ElevenLabs](https://elevenlabs.io/):
 
@@ -82,11 +92,15 @@ ElevenLabs is awesome. It also is a featured integration when you host on Vercel
 - Set up an ElevenLabs account and get your API key and place it as ```ELEVENLABS_API_KEY=``` in your .env file.
 - You you will have access to a voice lab section once you have an account. That's where you can choose up to three voices from the voice library and simply add them to your voice lab dashboard. Then you can add them to be part of this app (you can replace voice names that I have set up in my ```getVoices.ts``` file with the ones you seek).
 
+---
+
 ### Set up [Clerk](https://clerk.com/docs/quickstarts/nextjs)
 
 Clerk is an easy and straightforward way of setting authentication into your app. It is compatible with Next.js App Router. 
 
 - Set up a Clerk account and get your API keys (public and secret) and place them as ```NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=``` & ```CLERK_SECRET_KEY=```.
+  
+---
 
 ### Setting the app for development locally:
 
@@ -117,6 +131,8 @@ npm run prisma:generate
 // Original command from Prisma is:
 npx prisma generate
 ```
+
+---
 
 ## Common Errors
 
