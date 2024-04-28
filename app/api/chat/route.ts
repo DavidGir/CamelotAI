@@ -67,7 +67,6 @@ export async function POST(req: NextRequest) {
       .slice(0, -1)
       .map(formatVercelMessages);
     const currentMessageContent = messages[messages.length - 1].content;
-    const chatId = body.chatId;
 
     const model = new ChatOpenAI({
       modelName: 'gpt-4',
@@ -76,11 +75,14 @@ export async function POST(req: NextRequest) {
 
     const embeddings = loadEmbeddingsModel();
 
-    const vectorStoreId = body.vectorStoreId;
+    const namespace = `user-session-${userId}`;
+
+    // Initialize the vector store with the user's documents
     const store = await loadVectorStore({
-      namespace: chatId,
-      embeddings,
+      namespace: namespace,
+      embeddings
     });
+
     const vectorstore = store.vectorstore;
 
     let resolveWithDocuments: (value: Document[]) => void;
