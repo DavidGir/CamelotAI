@@ -45,7 +45,7 @@
 
 ## How Does It Work
 
-### Video Walkthrough of Corporate Release - Central Hub View 
+### Video Walkthrough of Corporate Release - Central Hub View (Latest Release)
 https://github.com/DavidGir/CamelotAI/assets/142949344/665e928c-8034-4ab6-a536-7d6bca21e0a6
 
 ### Video Walkthrough of Corporate Release - Multi-Tabs View 
@@ -173,8 +173,8 @@ npx prisma generate
 
 ## Future Implementations
 
+✅ Implement version that takes all files. A viewing alternative needs to be established. ✅ (Featured in Latest Release)
 - Implement Unstructured with LangChain-js as the new ingester. It can ingest up to 26 different types of files. (Currently in the works!! 🙇)
-- Implement version that takes all files without a pdf viewer. A viewing alternative needs to be established. 
 - Implement own uploader solution.
 - Implement mobile design.
 - Perhaps local implementation with OLLAMA.
