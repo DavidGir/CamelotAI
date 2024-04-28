@@ -44,7 +44,7 @@ async function deleteFile(params: DeleteFileParams) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const { id, fileUrl } = await request.json();
+  const { docId, fileUrl } = await request.json();
   const { userId } = auth();
 
   // Check if the user is authenticated
@@ -52,12 +52,12 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'You must be logged in to delete data' });
   }
 
-  if (!id || !fileUrl) {
-    return NextResponse.json({ error: 'id or fileUrl is missing in the request' }, { status: 400 });
+  if (!docId || !fileUrl) {
+    return NextResponse.json({ error: 'docId or fileUrl is missing in the request' }, { status: 400 });
   }
 
   try {
-    if (id && fileUrl) {
+    if (docId && fileUrl) {
       // Extract the account id and the path from the fileUrl for Bytescale cloud storage deletion:
       const pathWithAccId = fileUrl.replace('https://upcdn.io/', '');
       const accId = pathWithAccId.split('/')[0];
@@ -86,11 +86,42 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Error deleting document from Bytescale' });
   }
 
+  const namespace = `user-session-${userId}`;
+
   try {
+    // Fetch the document to get vectorIds
+    const document = await prisma.document.findUnique({
+      where: { 
+        id: docId, 
+        userId: userId 
+      },
+      select: { 
+        vectorIds: true 
+      }
+    });
+
+    if (!document) {
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 });
+    }
+
+    // Delete the vectors associated with the document from Pinecone:
+    const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY ?? '' });
+    const index = pinecone.index(process.env.PINECONE_INDEX_NAME ?? '');
+    await index.namespace(namespace).deleteMany(document.vectorIds)
+      .then(
+        () => console.log('Success deleting document vectors in Pinecone.'),
+        (error: Error) => {
+          console.error(error);
+          return NextResponse.json({
+            error: 'Could not delete document vectors from Pinecone',
+          });
+        },
+      );
+    
     // Delete the document from PostgreSQL using Prisma:
     await prisma.document.delete({
       where: {
-        id: id,
+        id: docId,
         userId: userId,
       },
     }).then(
@@ -102,28 +133,9 @@ export async function DELETE(request: NextRequest) {
         });
       },
     );
+    return NextResponse.json({ message: `Document and associated vectors deleted` }, { status: 200 });
   } catch (error) {
-    console.error('Error deleting document from PostgreSQL:', error);
-    return NextResponse.json({ error: 'Error deleting document from PostgreSQL' });
-  }
-
-  try {
-    // Delete the document vectors from Pinecone namespace:
-    const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY ?? '' });
-    const index = pinecone.index(process.env.PINECONE_INDEX_NAME ?? '');
-    // Delete all vectors from the specific namespace which is the same as document id:
-    await index.namespace(id).deleteAll()
-      .then(
-        () => console.log('Success deleting document vectors in Pinecone.'),
-        (error: Error) => {
-          console.error(error);
-          return NextResponse.json({
-            error: 'Could not delete document vectors from Pinecone',
-          });
-        },
-      );
-    return NextResponse.json({ message: `Document and vectors for ${id} deleted` }, { status: 200 });
-  } catch (error) {
+    console.error('Error during deletion process:', error);
     return NextResponse.json({ error: 'Error deleting document and vectors' }, { status: 500 });
   }
 }
