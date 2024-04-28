@@ -1,8 +1,12 @@
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Markdown from 'react-markdown';
 import { FaVolumeHigh } from 'react-icons/fa6';
 import { SpinnerDotted } from 'spinners-react';
 import { Message, Source } from '@/app/types/chatTypes';
+import { AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
 
 export interface MessageRendererProps {
   message: Message;
@@ -10,15 +14,12 @@ export interface MessageRendererProps {
   sourcesForMessages: Record<string, Source[]>;
   extractSourcePageNumber: (source: Source) => number;
   userProfilePic: string;
-  setNavigateToPage: (navigationInfo: {
-    docIndex: number;
-    pageNumber: number;
-  }) => void;
-  selectedDocIndex: number;
+  navigateToDocumentPage: ( docId: string, pageNumber: number) => void;
   isLoading: boolean;
   requestTextToSpeech: (text: string, index: number) => Promise<void>;
   audioLoading: Record<number, boolean>;
   audioRef: React.RefObject<HTMLAudioElement>;
+  documentNameToIdMap: Record<string, string>;
 }
 
 // A functional component for rendering individual messages
@@ -28,31 +29,62 @@ export default function MessageRenderer({
   sourcesForMessages,
   extractSourcePageNumber,
   userProfilePic,
-  setNavigateToPage,
-  selectedDocIndex,
+  navigateToDocumentPage,
   isLoading,
   requestTextToSpeech,
   audioLoading,
   audioRef,
+  documentNameToIdMap
 }: MessageRendererProps) {
   const sources: Source[] = sourcesForMessages[index] || [];
   const isLastMessage: boolean =
     !isLoading && index === Number(sourcesForMessages.length) - 1;
   const previousMessages: boolean =
     index !== Number(sourcesForMessages.length) - 1;
-  const uniqueAndSortedSources: Source[] = sources
-    .filter(
-      (source: Source, index: number, self: Source[]) =>
-        index ===
-        self.findIndex(
-          (s: Source) =>
-            extractSourcePageNumber(s) === extractSourcePageNumber(source),
-        ),
-    )
-    .sort(
-      (a: Source, b: Source) =>
-        extractSourcePageNumber(a) - extractSourcePageNumber(b),
+
+  const uniqueAndSortedSources = useMemo(() => {
+    const uniqueSources = sources.filter((source, index, self) =>
+      self.findIndex(s => extractSourcePageNumber(s) === extractSourcePageNumber(source)) === index
     );
+    return uniqueSources.sort((a, b) => extractSourcePageNumber(a) - extractSourcePageNumber(b));
+  }, [sources, extractSourcePageNumber]);
+
+
+  const groupedSources = useMemo(() => {
+    return uniqueAndSortedSources.reduce((acc: any, source) => {
+      const docName = source.metadata.docstore_document_name || "Unknown Document";
+      if (!acc[docName]) {
+        acc[docName] = [];
+      }
+      acc[docName].push(extractSourcePageNumber(source));
+      return acc;
+    }, {});
+  }, [uniqueAndSortedSources, extractSourcePageNumber]);
+
+  const [collapsedSources, setCollapsedSources] = useState(() => {
+    const initialCollapsedState: Record<string, boolean> = {};
+    Object.keys(groupedSources).forEach(docName => {
+      initialCollapsedState[docName] = true; // Start all collapsed
+    });
+    return initialCollapsedState;
+  });
+  
+  // Function to toggle individual source collapse state
+  const toggleSourceCollapse = (docName: string) => {
+    setCollapsedSources((prev) => ({ ...prev, [docName]: !prev[docName] }));
+  };
+
+  const handlePageClick = (docName: string, page: number) => {
+    const docId = documentNameToIdMap[docName];
+    if (docId) {
+      navigateToDocumentPage(docId, page);
+    } else {
+      console.error("No document ID found for document name:", docName);
+    }
+  };
+
+  // Only display sources for the assistant's message if they are available
+  const showSources = message.role === 'assistant' && sources.length > 0;
 
   return (
     <div key={`chatMessage-${index}`} className="flex flex-col justify-between">
@@ -120,24 +152,43 @@ export default function MessageRenderer({
           </div>
         )}
         {/* Display the sources */}
-        {(isLastMessage || previousMessages) && sources && (
+        {showSources && (isLastMessage || previousMessages) && (
           <>
+            <hr className="my-5 border border-gray-200" />
+            <h4 className="mb-2 ml-14 text-sm font-semibold text-gray-700">
+              Relevant Sources:
+            </h4>
             <div className="ml-14 mt-3 flex space-x-4">
-              {uniqueAndSortedSources.map((source: Source) => (
-                <button
-                  key={`source-${extractSourcePageNumber(source)}`}
-                  className="rounded-lg border bg-gray-200 px-3 py-1 transition hover:bg-gray-100"
-                  onClick={() => {
-                    const pageNumber = extractSourcePageNumber(source);
-                    // Update the navigateToPage state to indicate the desired document and page
-                    setNavigateToPage({
-                      docIndex: selectedDocIndex,
-                      pageNumber: pageNumber - 1,
-                    });
-                  }}
-                >
-                  p. {extractSourcePageNumber(source)}
-                </button>
+              {/* Grouped sources by document */}
+              {Object.entries(groupedSources).map(([docName, pages]) => (
+                <div key={docName}>
+                  <button
+                    onClick={() => toggleSourceCollapse(docName)}
+                    className="flex items-center justify-between gap-2 rounded-lg border bg-gray-200 px-3 py-1 text-sm transition hover:bg-gray-100"
+                  >
+                    {docName}
+                    {collapsedSources[docName] ? (
+                      <AiOutlineDown />
+                    ) : (
+                      <AiOutlineUp />
+                    )}
+                  </button>
+                  {!collapsedSources[docName] && (
+                    <div className="mt-2 flex flex-wrap">
+                      {(pages as number[])
+                        .sort((a, b) => a - b)
+                        .map((page: number, idx: number) => (
+                          <button
+                            key={`${docName}-${page}-${idx}`}
+                            className="mb-2 mr-2 rounded-lg border bg-gray-200 px-3 py-1 text-sm transition hover:bg-gray-100"
+                            onClick={() => handlePageClick(docName, page)}
+                          >
+                            p. {page}
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </>
