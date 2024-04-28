@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://camelotai.vercel.app/">
-    <img src="https://github.com/DavidGir/CamelotAI/assets/142949344/052bdf33-8d81-4e31-832e-00a8ed171116" alt="desktop-view" width="400" height="400" />
+    <img src="https://github.com/DavidGir/CamelotAI/assets/142949344/44e658d9-308d-4ed3-995b-7a812011021f" alt="desktop-view" width="400" height="400" />
   </a>
 </p>
 
@@ -44,6 +44,9 @@
 - **[Tailwind CSS](https://tailwindcss.com/)**: Utility-first CSS framework for rapid UI development.
 
 ## How Does It Work
+
+### Video Walkthrough of Corporate Release - Central Hub View 
+https://github.com/DavidGir/CamelotAI/assets/142949344/665e928c-8034-4ab6-a536-7d6bca21e0a6
 
 ### Video Walkthrough of Corporate Release - Multi-Tabs View 
 https://github.com/DavidGir/CamelotAI/assets/142949344/14c1c64d-373f-4253-85e3-e75cff5358c0
