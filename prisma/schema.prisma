@@ -15,18 +15,20 @@ model Document {
   userId    String
   fileUrl   String
   fileName  String
+  vectorIds String[] @default([])
   createdAt DateTime @default(now()) @map(name: "created_at")
   chats     Chat[]   @relation("DocumentToChat")
 }
 
 model Chat {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
-  documentId  String   @map(name: "document_id")
-  document    Document @relation("DocumentToChat", fields: [documentId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now()) @map(name: "created_at")
-  updatedAt   DateTime @updatedAt @map(name: "updated_at")
-  isSaved     Boolean  @default(false) // Default to false when the chat is initially created
+  sessionId   String   
+  documentId  String?    @map(name: "document_id")
+  document    Document?  @relation("DocumentToChat", fields: [documentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now()) @map(name: "created_at")
+  updatedAt   DateTime  @updatedAt @map(name: "updated_at")
+  isSaved     Boolean   @default(false) // Default to false when the chat is initially created
   messages    Message[] @relation("ChatToMessage")
 }
 
