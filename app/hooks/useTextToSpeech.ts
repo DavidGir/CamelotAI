@@ -3,7 +3,7 @@ import notifyUser from '../utils/notifyUser';
 import useLocalStorage from '@/app/hooks/useLocalStorage';
 
 interface TextToSpeechHook {
-  selectedVoice: string;
+  selectedVoice: string | undefined;
 }
 
 interface TextToSpeechState {
@@ -40,7 +40,7 @@ export default function useTextToSpeech({ selectedVoice }: TextToSpeechHook): Te
     const key = `${text}-${selectedVoice}`;
     // Check if the audio URL already exists in the local storage
     // Avoid making a API request if the audio URL is already saved
-    const currentAudioUrl = savedAudioUrls[key];
+    const currentAudioUrl = savedAudioUrls![key];
     if (currentAudioUrl && audioRef.current) {
       audioRef.current.src = currentAudioUrl;
       audioRef.current.play();

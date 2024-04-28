@@ -18,7 +18,7 @@ const Logo = ({ isMobile }: LogoProps) => {
           />
         </div>
         {!isMobile ? (
-          <h1 className="shadows text-primary text-[30px] sm:text-[35px] pl-2 pt-3">
+          <h1 className="shadows text-white text-[30px] sm:text-[35px] pl-2 pt-3">
             CamelotAi
           </h1>
         ) : null}

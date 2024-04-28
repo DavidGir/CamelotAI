@@ -1,91 +1,60 @@
 import { Voice as VoiceResponse } from 'elevenlabs/api';
-import Select from 'react-dropdown-select';
-
+import * as Select from '@radix-ui/react-select';
 
 interface ChatVoiceProps {
   voices: VoiceResponse[];
-  selectedVoice: string;
-  setSelectedVoice: (voice: string) => void;
+  selectedVoice: string | undefined;
+  setSelectedVoice: (voice: string | undefined) => void;
 }
 
-// Function to create a badge element
-const createBadge = (text: string, backgroundColor: string, color: string) => (
-  <span style={{
-    backgroundColor: backgroundColor,
-    color: color,
-    fontWeight: 'bold',
-    borderRadius: '10px',
-    padding: '0.1rem 0.6rem',
-    fontSize: '1rem',
-    marginLeft: '0.5rem',
-    display: 'inline-block', 
-  }}>
-    {text}
-  </span>
-);
-
-// Custom item renderer for Select
-const customItemRenderer = ({ item, methods }: { item: any, methods: any }) => (
-  <div onClick={() => methods.addItem(item)} 
-  style={{ 
-    display: 'flex', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    padding: '0.5rem', 
-    width: '100%',
-    cursor: 'pointer',
-    backgroundColor: 'transparent',
-    transition: 'background-color 0.2s', 
-  }}
-    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f2f2f2'} // Light grey background on hover
-    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'} // Transparent background when not hovering
-  >
-    <span style={{ marginRight: 'auto' }}>{item.label}</span>
-    <div style={{ display: 'flex' }}> 
-      {item.language && createBadge(item.language, '#7FFFD4', '#005f60')}
-      {item.accent && createBadge(item.accent, '#89CFF0', '#003459')}
-      {item.gender && createBadge(item.gender, '#B0E0E6', '#005f60')}
-      {item.descriptive && createBadge(item.descriptive, '#CCCCFF', '#333366')}
-      {item.use_case && createBadge(item.use_case, '#A3C1AD', '#2F4F4F')}
-    </div>
-  </div>
-);
+function createBadge(text: string, backgroundColor: string, textColor: string) {
+  return (
+    <span className={`inline-block font-bold text-sm px-2 py-1 rounded-md ml-2 ${backgroundColor} ${textColor}`}>
+      {text}
+    </span>
+  );
+}
 
 export default function ChatVoice({ voices, selectedVoice, setSelectedVoice }: ChatVoiceProps) {
-  // Create options for the Select component
-  const options = voices.map(voice => ({
-    label: voice.name,
-    value: voice.voice_id,
-    language: voice.labels?.language,
-    accent: voice.labels?.accent,
-    gender: voice.labels?.gender,
-    descriptive: voice.labels?.descriptive,
-    use_case: voice.labels?.use_case,
-  })).sort((a, b) => (a.label ?? '').localeCompare(b.label ?? ''));
-
-  // Function to handle selection changes
-  const onChange = (values: any) => {
-    setSelectedVoice(values[0].value);
+  // Handle selection changes
+  const handleValueChange = (value: string | null) => {
+    setSelectedVoice(value || undefined);
   };
-
   return (
     <div className="flex flex-col w-full p-4 bg-white border text-center">
-      <label className="mb-2 text-md lg:text-base" htmlFor="voices">
-        Change Camelot&apos;s Voice:
-      </label>
-      <Select
-        options={options}
-        itemRenderer={customItemRenderer}
-        values={options.filter(option => option.value === selectedVoice)}
-        onChange={onChange}
-        labelField="label"
-        valueField="value"
-        searchable={false}
-        clearable={false}
-        separator={true}
-        placeholder='Select a voice...'
-        className="text-black border rounded-lg text-md lg:text-base"
-      />
+      <label className="mb-2 text-md lg:text-base" htmlFor="voices">Change Camelot’s Voice:</label>
+      <div className="flex justify-center items-center w-full">
+      <Select.Root 
+        onValueChange={handleValueChange} 
+        value={selectedVoice}
+      >
+        <Select.Trigger 
+          className="flex justify-between px-4 py-2 bg-white border rounded-lg cursor-pointer w-full"
+          placeholder="Select a voice..."
+        >
+          <Select.Value placeholder="Select a voice..." />
+          <Select.Icon />
+        </Select.Trigger>
+        <Select.Content 
+          className="bg-white rounded-lg shadow-lg"
+        >
+          <Select.Viewport>
+            {voices.map((voice) => (
+              <Select.Item key={voice.voice_id} value={voice.voice_id} className="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full">
+                <Select.ItemText>{voice.name}</Select.ItemText>
+                <div className="flex items-center">
+                  {voice.labels?.language && createBadge(voice.labels.language, 'bg-blue-200', 'text-blue-800')}
+                  {voice.labels?.accent && createBadge(voice.labels.accent, 'bg-green-200', 'text-green-800')}
+                  {voice.labels?.gender && createBadge(voice.labels.gender, 'bg-red-200', 'text-red-800')}
+                  {voice.labels?.descriptive && createBadge(voice.labels.descriptive, 'bg-purple-200', 'text-purple-800')}
+                  {voice.labels?.use_case && createBadge(voice.labels.use_case, 'bg-yellow-200', 'text-yellow-800')}
+                </div>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Root>
+      </div>
     </div>
   );
-};
+}

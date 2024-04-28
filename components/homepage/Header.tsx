@@ -27,13 +27,13 @@ const Header = () => {
         <Logo />
         <div className="mt-4 gap-4 sm:flex">
           <Link
-            href="/dashboard"
+            href="/document"
             className="text-primary border-black rounded-[18px] border border-solid px-[22px] py-1.5 text-center text-xl font-normal "
           >
             Log in
           </Link>
           <Link
-            href="/dashboard"
+            href="/document"
             className="bg_linear border-primary rounded-[18px] border border-solid px-[22px] py-1.5 text-center text-xl font-normal text-white "
           >
             Sign up

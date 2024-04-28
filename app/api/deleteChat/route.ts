@@ -4,12 +4,12 @@ import { auth } from '@clerk/nextjs/server';
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { documentId } = await request.json();
+    const { sessionId } = await request.json();
     const { userId } = auth();
 
-    if (!documentId || !userId) {
+    if (!sessionId || !userId) {
       return NextResponse.json(
-        { error: 'Document ID and User ID are required' },
+        { error: 'Session ID and User ID are required' },
         { status: 400 },
       );
     }
@@ -17,8 +17,8 @@ export async function DELETE(request: NextRequest) {
     // Deleting the chat associated with the documentId for the userId
     const chat = await prisma.chat.deleteMany({
       where: {
-        documentId: documentId,
-        userId: userId,
+        sessionId,
+        userId,
       },
     });
 
@@ -30,7 +30,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { message: 'Chat deleted successfully' },
+      { message: 'Chat session deleted successfully' },
       { status: 200 },
     );
   } catch (error) {

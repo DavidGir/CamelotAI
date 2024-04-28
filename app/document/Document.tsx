@@ -1,9 +1,8 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { Document } from '@prisma/client';
 import { useChat } from 'ai/react';
-import DocumentTabs from '@/components/ui/DocumentTabs';
 import { Voice as VoiceResponse } from 'elevenlabs/api';
 import useLocalStorage from '@/app/hooks/useLocalStorage';
 import useTextToSpeech from '@/app/hooks/useTextToSpeech';
@@ -13,38 +12,36 @@ import ChatDisplay from '@/components/ui/ChatDisplay';
 import ChatForm from '@/components/ui/ChatForm';
 import useChatInteraction from '@/app/hooks/useChatInteraction';
 import notifyUser from '@/app/utils/notifyUser';
+import DocumentsComponent from '@/components/viewer/DocumentsComponent';
+import FileUpload from '@/components/uploader/FileUpload';
+import { useAuth } from '@clerk/clerk-react';
 
 export default function DocumentClient({
   docsList,
   userImage,
-  selectedDocId,
 }: {
   docsList: Document[];
   userImage?: string;
-  selectedDocId: string;
 }) {
   const [sourcesForMessages, setSourcesForMessages] = useState<
     Record<string, any>
   >({});
   const [error, setError] = useState('');
-  const [navigateToPage, setNavigateToPage] = useState<{
-    docIndex: number;
-    pageNumber: number;
-  } | null>(null);
-  const [selectedDocIndex, setSelectedDocIndex] = useLocalStorage<number>(
-    'selectedDocIndex',
-    0,
-  );
   // Store the list of voices from ElevenLabs
   const [voices, setVoices] = useState<VoiceResponse[]>([]);
   // Store the name of the selected voice
-  const [selectedVoice, setSelectedVoice] = useLocalStorage<string>(
-    'selectedVoice',
-    'Camelot',
-  );
+  const [selectedVoice, setSelectedVoice] = useLocalStorage<string | undefined>('selectedVoice', undefined);
   // State to check if the chat has any messages
   const [hasChats, setHasChats] = useState(false);
   const [hasUnsavedMessages, setHasUnsavedMessages] = useState(false);
+
+  const [documents, setDocuments] = useState<Document[]>([]);
+
+  // State to track the currently selected document and page
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [selectedPage, setSelectedPage] = useState<number | null>(null);
+
+  const { sessionId } = useAuth();
 
   const {
     messages,
@@ -57,7 +54,7 @@ export default function DocumentClient({
   } = useChat({
     api: '/api/chat',
     body: {
-      chatId: docsList[selectedDocIndex]?.id,
+      documents: documents.map(doc => doc.id)
     },
     onResponse(response) {
       const sourcesHeader = response.headers.get('x-sources');
@@ -89,6 +86,40 @@ export default function DocumentClient({
     setHasUnsavedMessages(true);
   };
 
+   // Initialize documents state with docsList from props
+   useEffect(() => {
+    setDocuments(docsList);
+  }, [docsList]); 
+
+
+  // This function is triggered when new documents are added
+  const handleDocumentAdd = (newDocuments: any) => {
+    setDocuments(prevDocuments => {
+      const newDocs: Document[] = newDocuments.filter((newDoc: Document) => !prevDocuments.some(doc => doc.id === newDoc.id));
+      return [...prevDocuments, ...newDocs];
+    });
+  };
+
+  // Function to reset the selected document and page to be passed to the DocumentsComponent
+  const resetSelection = () => {
+    setSelectedDocId(null);
+    setSelectedPage(null);
+  };
+
+  // Function which will serve to programmatically open the involved document with the selected source page from the chatbot relevant sources response
+  const navigateToDocumentPage = useCallback((docId: string, pageNumber: number) => {
+    setSelectedDocId(docId);
+    setSelectedPage(pageNumber);
+    console.log('Selected document:', docId, 'Page number:', pageNumber);
+  }, []);
+
+  const documentNameToIdMap = useMemo(() => {
+    return docsList.reduce((acc: any, doc) => {
+      acc[doc.fileName] = doc.id;
+      return acc;
+    }, {});
+  }, [docsList]);
+
   useEffect(() => {
     // Fetch the voices from the getVoices() utility and store them.
     getVoices()
@@ -113,35 +144,26 @@ export default function DocumentClient({
     textAreaRef,
   );
 
-  // Effect to update selectedDocIndex when selectedDocId changes
-  useEffect(() => {
-    const index = docsList.findIndex((doc) => doc.id === selectedDocId);
-    if (index !== -1) {
-      setSelectedDocIndex(index);
-    }
-  }, [selectedDocId, docsList]);
-
-  // Effect to update localStorage when selectedDocIndex changes
-  useEffect(() => {
-    localStorage.setItem('selectedDocIndex', selectedDocIndex.toString());
-  }, [selectedDocIndex]);
-
-  // Function to handle tab selection
-  const handleTabSelect = (index: number) => {
-    setSelectedDocIndex(index);
-  };
-
   // Prevent empty chat submissions
   const handleEnter = (e: any) => {
-    if (e.key === 'Enter' && messages) {
-      handleSubmit(e);
-    } else if (e.key == 'Enter') {
-      e.preventDefault();
+    if (e.key === 'Enter') {
+      if (!input.trim()) {
+        e.preventDefault(); // Prevent form submission if input is empty or whitespace
+      } else {
+        // Submit the form if input is valid (non-empty and non-whitespace)
+        handleSubmit(e); // Cast event type if needed
+        setInput(''); // Clear the input after submitting
+      }
     }
   };
 
   // Function to handle saving chat
   const handleSaveChat = async () => {
+    if (!sessionId) {
+      notifyUser('No session ID found.', { type: 'error' });
+      return;
+    }
+
     if (!hasUnsavedMessages) {
       notifyUser('No new messages to save.', { type: 'info' });
       return;
@@ -156,7 +178,7 @@ export default function DocumentClient({
         },
         body: JSON.stringify({
           messages: messagesToSave,
-          documentId: docsList[selectedDocIndex]?.id,
+          sessionId
         }),
       });
 
@@ -168,7 +190,7 @@ export default function DocumentClient({
       notifyUser('Chat saved successfully.', { type: 'success' });
       setHasUnsavedMessages(false);
       // Fetch the updated chat history after saving to synchronize with local storage
-      fetchChatHistory(docsList[selectedDocIndex]?.id);
+      fetchChatHistory();
     } catch (error: any) {
       console.error('Failed to save chat:', error);
       setError(error.message);
@@ -176,10 +198,15 @@ export default function DocumentClient({
   };
 
   // Function to fetch chat history
-  const fetchChatHistory = async (documentId: string) => {
+  const fetchChatHistory = async () => {
+    if (!sessionId) {
+      notifyUser('No session ID found.', { type: 'error' });
+      return;
+    }
+
     try {
       const response = await fetch(
-        `/api/getChatHistory?documentId=${documentId}`,
+        `/api/getChatHistory?sessionId=${sessionId}`,
       );
       if (!response.ok) {
         throw new Error('Failed to load chat history');
@@ -189,11 +216,11 @@ export default function DocumentClient({
       setHasChats(data.messages.length > 0);
       // Store fetched messages in localStorage
       localStorage.setItem(
-        `messages_${documentId}`,
+        `messages_${sessionId}`,
         JSON.stringify(data.messages),
       );
       // Set a flag indicating history exists
-      localStorage.setItem(`shouldFetch_${documentId}`, 'true');
+      localStorage.setItem(`shouldFetch_${sessionId}`, 'true');
     } catch (error) {
       console.error('Error fetching chat history:', error);
       setMessages([]); 
@@ -203,23 +230,23 @@ export default function DocumentClient({
 
   // Effect to fetch chat history from localStorage or API endpoint
   useEffect(() => {
-    const documentId = docsList[selectedDocIndex]?.id;
-    if (!documentId) return;
+    if (!sessionId) return;
     const storedMessages = localStorage.getItem(
-      `messages_${documentId}`,
+      `messages_${sessionId}`,
     );
+    setMessages([]);
     if (storedMessages) {
       const messagesArray = JSON.parse(storedMessages);
       setMessages(messagesArray);
       setHasChats(messagesArray.length > 0);
     } else {
       // Check a flag to determine if we should fetch history
-      const shouldFetch = localStorage.getItem(`shouldFetch_${documentId}`);
+      const shouldFetch = localStorage.getItem(`shouldFetch_${sessionId}`);
       if (shouldFetch === 'true') {
-        fetchChatHistory(documentId);
+        fetchChatHistory();
       }
     }
-  }, [selectedDocIndex, docsList]);
+  }, [sessionId]);
 
   let userProfilePic = userImage || '/profile-icon.png';
 
@@ -231,16 +258,18 @@ export default function DocumentClient({
 
   // Function to delete chat and clear local state
   const handleDeleteChat = async () => {
+    if (!sessionId) {
+      notifyUser('No session ID found.', { type: 'error' });
+      return;
+    }
+
     try {
-      const documentId = docsList[selectedDocIndex]?.id;
       const response = await fetch(`/api/deleteChat`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          documentId: docsList[selectedDocIndex]?.id,
-        }),
+        body: JSON.stringify({ sessionId }),
       });
 
       if (!response.ok) {
@@ -251,9 +280,9 @@ export default function DocumentClient({
       setMessages([]);
       setHasChats(false);
       setHasUnsavedMessages(false);
-      localStorage.removeItem(`messages_${documentId}`);
+      localStorage.removeItem(`messages_${sessionId}`);
       // Remove the flag indicating history exists
-      localStorage.removeItem(`shouldFetch_${documentId}`);
+      localStorage.removeItem(`shouldFetch_${sessionId}`);
       clearAllAudioUrls();
       notifyUser('Chat deleted successfully.', { type: 'success' });
     } catch (error: any) {
@@ -264,17 +293,9 @@ export default function DocumentClient({
   };
 
   return (
-    <div className="no-scrollbar mx-auto -mt-2 flex flex-col">
-      <div className="flex w-full flex-col justify-between p-2 sm:space-y-20 lg:flex-row lg:space-y-0">
-        {/* Left hand side */}
-        <DocumentTabs
-          docsList={docsList}
-          navigateToPage={navigateToPage}
-          onTabSelect={handleTabSelect}
-          selectedTab={selectedDocIndex}
-        />
-        {/* Right hand side */}
-        <div className="align-center no-scrollbar flex h-[90vh] w-full flex-col justify-between">
+    <div className="no-scrollbar -mt-2 flex flex-col lg:flex-row max-h-screen overflow-hidden">
+      <div className="flex w-full flex-col  sm:space-y-20 lg:flex-row lg:space-y-0 overflow-hidden">
+        <div className="flex flex-col lg:w-2/3 w-full p-2">
           <ChatVoice {...{ voices, selectedVoice, setSelectedVoice }} />
           <ChatDisplay
             messages={messages}
@@ -288,11 +309,12 @@ export default function DocumentClient({
             handleSampleQuestionClick={handleSampleQuestionClick}
             sampleQuestions={sampleQuestions}
             isLoading={isLoading}
-            setNavigateToPage={setNavigateToPage}
-            selectedDocIndex={selectedDocIndex}
+            navigateToDocumentPage={navigateToDocumentPage}
             error={error}
+            documentNameToIdMap={documentNameToIdMap}
+            documents={documents}
           />
-          <div className="flex h-[20vh] items-center justify-center sm:h-[15vh]">
+          <div className="flex items-center justify-center">
             <ChatForm
               isLoading={isLoading}
               input={input}
@@ -311,13 +333,25 @@ export default function DocumentClient({
               <p className="text-red-500">{error}</p>
             </div>
           )}
-          <div className="flex items-center justify-center p-10">
+          <div className="flex justify-center p-5">
             <p>
-              {' '}
               CamelotAi can make mistakes. Consider checking and verifying
-              documents.{' '}
+              documents.
             </p>
           </div>
+        </div>
+        <div className="w-full lg:w-1/3 overflow-auto">
+          <DocumentsComponent 
+            docsList={documents} 
+            selectedDocId={selectedDocId}
+            selectedPage={selectedPage}
+            onDocumentSelect={navigateToDocumentPage}
+            resetSelection={resetSelection}
+          />
+          <FileUpload 
+            docsList={documents} 
+            onDocumentAdd={handleDocumentAdd} 
+          />
         </div>
       </div>
     </div>

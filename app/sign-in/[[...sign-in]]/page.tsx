@@ -11,7 +11,7 @@ export default function Page() {
                 'bg-black hover:bg-gray-700 transition text-sm normal-case',
             },
           }}
-          afterSignInUrl="/dashboard"
+          afterSignInUrl="/document"
         />
       </div>
     </div>
