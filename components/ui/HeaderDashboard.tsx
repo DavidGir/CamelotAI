@@ -26,7 +26,6 @@ export default function HeaderDashboard() {
           <div className="flex items-center gap-5">
             {isSignedIn ? (
               <>
-                <Link href="/dashboard">Dashboard</Link>
                 <UserButton afterSignOutUrl="/" />
               </>
             ) : (

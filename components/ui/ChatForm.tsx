@@ -41,7 +41,7 @@ export default function ChatForm({
       />
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={isLoading || !input.trim()}
         className="absolute right-6 top-[40px] flex rounded-sm border-none bg-transparent px-2 py-1 text-gray-600 transition duration-300 ease-in-out sm:top-[71px]"
       >
         {isLoading ? (

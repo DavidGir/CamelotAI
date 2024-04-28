@@ -3,14 +3,14 @@ import prisma from '../utils/prisma';
 export async function saveChat(
   newMessages: { content: string; role: string }[],
   userId: string,
-  documentId: string
+  sessionId: string,
 ) {
   return await prisma.$transaction(async (prisma) => {
     // Check if a chat session exists
     let chat = await prisma.chat.findFirst({
       where: {
-        documentId: documentId,
-        userId: userId
+        userId,
+        sessionId
       }
     });
 
@@ -18,8 +18,8 @@ export async function saveChat(
     if (!chat) {
       chat = await prisma.chat.create({
         data: {
-          userId: userId,
-          documentId: documentId
+          userId,
+          sessionId
         }
       });
     }

@@ -24,9 +24,10 @@ export interface ChatDisplayProps {
   handleSampleQuestionClick: (question: string) => void;
   sampleQuestions: string[];
   isLoading: boolean;
-  setNavigateToPage: (navigationInfo: { docIndex: number, pageNumber: number }) => void;
-  selectedDocIndex: number;
+  navigateToDocumentPage: (docId: string, pageNumber: number) => void;
   error: string | null;
+  documentNameToIdMap: Record<string, string>;
+  documents: any[];
 }
 
 export interface ChatFormProps {
